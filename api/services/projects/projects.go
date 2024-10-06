@@ -15,7 +15,7 @@ type createProjectRequest struct {
 }
 
 func CreateProject(c *gin.Context) {
-	userId := c.MustGet("userId").(uuid.UUID)
+	userID := c.MustGet("userID").(uuid.UUID)
 
 	var req createProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -24,7 +24,7 @@ func CreateProject(c *gin.Context) {
 	}
 
 	project, err := db.Client.Project.Create().
-		SetUserID(userId).
+		SetUserID(userID).
 		SetName(req.Name).
 		SetDescription(req.Description).
 		Save(c)

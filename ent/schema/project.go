@@ -32,7 +32,8 @@ func (Project) Edges() []ent.Edge {
 		edge.From("user", User.Type).
 			Ref("projects").
 			Unique().
-			Required(),
+			Required().
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("oidc_clients", OidcClient.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

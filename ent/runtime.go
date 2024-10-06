@@ -27,12 +27,16 @@ func init() {
 	oidcclientDescClientID := oidcclientFields[2].Descriptor()
 	// oidcclient.ClientIDValidator is a validator for the "client_id" field. It is called by the builders before save.
 	oidcclient.ClientIDValidator = oidcclientDescClientID.Validators[0].(func(string) error)
+	// oidcclientDescClientSecret is the schema descriptor for client_secret field.
+	oidcclientDescClientSecret := oidcclientFields[3].Descriptor()
+	// oidcclient.ClientSecretValidator is a validator for the "client_secret" field. It is called by the builders before save.
+	oidcclient.ClientSecretValidator = oidcclientDescClientSecret.Validators[0].(func(string) error)
 	// oidcclientDescCreatedAt is the schema descriptor for created_at field.
-	oidcclientDescCreatedAt := oidcclientFields[3].Descriptor()
+	oidcclientDescCreatedAt := oidcclientFields[4].Descriptor()
 	// oidcclient.DefaultCreatedAt holds the default value on creation for the created_at field.
 	oidcclient.DefaultCreatedAt = oidcclientDescCreatedAt.Default.(func() time.Time)
 	// oidcclientDescUpdatedAt is the schema descriptor for updated_at field.
-	oidcclientDescUpdatedAt := oidcclientFields[4].Descriptor()
+	oidcclientDescUpdatedAt := oidcclientFields[5].Descriptor()
 	// oidcclient.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	oidcclient.DefaultUpdatedAt = oidcclientDescUpdatedAt.Default.(func() time.Time)
 	// oidcclient.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

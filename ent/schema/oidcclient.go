@@ -21,6 +21,7 @@ func (OidcClient) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.String("name").NotEmpty(),
 		field.String("client_id").NotEmpty(),
+		field.String("client_secret").NotEmpty(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

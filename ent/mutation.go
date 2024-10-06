@@ -42,6 +42,7 @@ type OidcClientMutation struct {
 	id             *uuid.UUID
 	name           *string
 	client_id      *string
+	client_secret  *string
 	created_at     *time.Time
 	updated_at     *time.Time
 	clearedFields  map[string]struct{}
@@ -228,6 +229,42 @@ func (m *OidcClientMutation) ResetClientID() {
 	m.client_id = nil
 }
 
+// SetClientSecret sets the "client_secret" field.
+func (m *OidcClientMutation) SetClientSecret(s string) {
+	m.client_secret = &s
+}
+
+// ClientSecret returns the value of the "client_secret" field in the mutation.
+func (m *OidcClientMutation) ClientSecret() (r string, exists bool) {
+	v := m.client_secret
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientSecret returns the old "client_secret" field's value of the OidcClient entity.
+// If the OidcClient object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OidcClientMutation) OldClientSecret(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientSecret is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientSecret requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientSecret: %w", err)
+	}
+	return oldValue.ClientSecret, nil
+}
+
+// ResetClientSecret resets all changes to the "client_secret" field.
+func (m *OidcClientMutation) ResetClientSecret() {
+	m.client_secret = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *OidcClientMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -373,12 +410,15 @@ func (m *OidcClientMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OidcClientMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, oidcclient.FieldName)
 	}
 	if m.client_id != nil {
 		fields = append(fields, oidcclient.FieldClientID)
+	}
+	if m.client_secret != nil {
+		fields = append(fields, oidcclient.FieldClientSecret)
 	}
 	if m.created_at != nil {
 		fields = append(fields, oidcclient.FieldCreatedAt)
@@ -398,6 +438,8 @@ func (m *OidcClientMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case oidcclient.FieldClientID:
 		return m.ClientID()
+	case oidcclient.FieldClientSecret:
+		return m.ClientSecret()
 	case oidcclient.FieldCreatedAt:
 		return m.CreatedAt()
 	case oidcclient.FieldUpdatedAt:
@@ -415,6 +457,8 @@ func (m *OidcClientMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldName(ctx)
 	case oidcclient.FieldClientID:
 		return m.OldClientID(ctx)
+	case oidcclient.FieldClientSecret:
+		return m.OldClientSecret(ctx)
 	case oidcclient.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case oidcclient.FieldUpdatedAt:
@@ -441,6 +485,13 @@ func (m *OidcClientMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetClientID(v)
+		return nil
+	case oidcclient.FieldClientSecret:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientSecret(v)
 		return nil
 	case oidcclient.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -510,6 +561,9 @@ func (m *OidcClientMutation) ResetField(name string) error {
 		return nil
 	case oidcclient.FieldClientID:
 		m.ResetClientID()
+		return nil
+	case oidcclient.FieldClientSecret:
+		m.ResetClientSecret()
 		return nil
 	case oidcclient.FieldCreatedAt:
 		m.ResetCreatedAt()

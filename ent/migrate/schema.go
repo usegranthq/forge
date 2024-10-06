@@ -13,6 +13,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeString},
 		{Name: "client_id", Type: field.TypeString},
+		{Name: "client_secret", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "project_oidc_clients", Type: field.TypeUUID},
@@ -25,7 +26,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "oidc_clients_projects_oidc_clients",
-				Columns:    []*schema.Column{OidcClientsColumns[5]},
+				Columns:    []*schema.Column{OidcClientsColumns[6]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

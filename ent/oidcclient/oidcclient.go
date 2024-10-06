@@ -19,6 +19,8 @@ const (
 	FieldName = "name"
 	// FieldClientID holds the string denoting the client_id field in the database.
 	FieldClientID = "client_id"
+	// FieldClientSecret holds the string denoting the client_secret field in the database.
+	FieldClientSecret = "client_secret"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -41,6 +43,7 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldClientID,
+	FieldClientSecret,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -71,6 +74,8 @@ var (
 	NameValidator func(string) error
 	// ClientIDValidator is a validator for the "client_id" field. It is called by the builders before save.
 	ClientIDValidator func(string) error
+	// ClientSecretValidator is a validator for the "client_secret" field. It is called by the builders before save.
+	ClientSecretValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -97,6 +102,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByClientID orders the results by the client_id field.
 func ByClientID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldClientID, opts...).ToFunc()
+}
+
+// ByClientSecret orders the results by the client_secret field.
+func ByClientSecret(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClientSecret, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

@@ -34,6 +34,12 @@ func (occ *OidcClientCreate) SetClientID(s string) *OidcClientCreate {
 	return occ
 }
 
+// SetClientSecret sets the "client_secret" field.
+func (occ *OidcClientCreate) SetClientSecret(s string) *OidcClientCreate {
+	occ.mutation.SetClientSecret(s)
+	return occ
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (occ *OidcClientCreate) SetCreatedAt(t time.Time) *OidcClientCreate {
 	occ.mutation.SetCreatedAt(t)
@@ -154,6 +160,14 @@ func (occ *OidcClientCreate) check() error {
 			return &ValidationError{Name: "client_id", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_id": %w`, err)}
 		}
 	}
+	if _, ok := occ.mutation.ClientSecret(); !ok {
+		return &ValidationError{Name: "client_secret", err: errors.New(`ent: missing required field "OidcClient.client_secret"`)}
+	}
+	if v, ok := occ.mutation.ClientSecret(); ok {
+		if err := oidcclient.ClientSecretValidator(v); err != nil {
+			return &ValidationError{Name: "client_secret", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_secret": %w`, err)}
+		}
+	}
 	if _, ok := occ.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "OidcClient.created_at"`)}
 	}
@@ -205,6 +219,10 @@ func (occ *OidcClientCreate) createSpec() (*OidcClient, *sqlgraph.CreateSpec) {
 	if value, ok := occ.mutation.ClientID(); ok {
 		_spec.SetField(oidcclient.FieldClientID, field.TypeString, value)
 		_node.ClientID = value
+	}
+	if value, ok := occ.mutation.ClientSecret(); ok {
+		_spec.SetField(oidcclient.FieldClientSecret, field.TypeString, value)
+		_node.ClientSecret = value
 	}
 	if value, ok := occ.mutation.CreatedAt(); ok {
 		_spec.SetField(oidcclient.FieldCreatedAt, field.TypeTime, value)

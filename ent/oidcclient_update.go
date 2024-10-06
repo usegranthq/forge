@@ -58,6 +58,20 @@ func (ocu *OidcClientUpdate) SetNillableClientID(s *string) *OidcClientUpdate {
 	return ocu
 }
 
+// SetClientSecret sets the "client_secret" field.
+func (ocu *OidcClientUpdate) SetClientSecret(s string) *OidcClientUpdate {
+	ocu.mutation.SetClientSecret(s)
+	return ocu
+}
+
+// SetNillableClientSecret sets the "client_secret" field if the given value is not nil.
+func (ocu *OidcClientUpdate) SetNillableClientSecret(s *string) *OidcClientUpdate {
+	if s != nil {
+		ocu.SetClientSecret(*s)
+	}
+	return ocu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (ocu *OidcClientUpdate) SetUpdatedAt(t time.Time) *OidcClientUpdate {
 	ocu.mutation.SetUpdatedAt(t)
@@ -134,6 +148,11 @@ func (ocu *OidcClientUpdate) check() error {
 			return &ValidationError{Name: "client_id", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_id": %w`, err)}
 		}
 	}
+	if v, ok := ocu.mutation.ClientSecret(); ok {
+		if err := oidcclient.ClientSecretValidator(v); err != nil {
+			return &ValidationError{Name: "client_secret", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_secret": %w`, err)}
+		}
+	}
 	if ocu.mutation.ProjectCleared() && len(ocu.mutation.ProjectIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OidcClient.project"`)
 	}
@@ -157,6 +176,9 @@ func (ocu *OidcClientUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := ocu.mutation.ClientID(); ok {
 		_spec.SetField(oidcclient.FieldClientID, field.TypeString, value)
+	}
+	if value, ok := ocu.mutation.ClientSecret(); ok {
+		_spec.SetField(oidcclient.FieldClientSecret, field.TypeString, value)
 	}
 	if value, ok := ocu.mutation.UpdatedAt(); ok {
 		_spec.SetField(oidcclient.FieldUpdatedAt, field.TypeTime, value)
@@ -234,6 +256,20 @@ func (ocuo *OidcClientUpdateOne) SetClientID(s string) *OidcClientUpdateOne {
 func (ocuo *OidcClientUpdateOne) SetNillableClientID(s *string) *OidcClientUpdateOne {
 	if s != nil {
 		ocuo.SetClientID(*s)
+	}
+	return ocuo
+}
+
+// SetClientSecret sets the "client_secret" field.
+func (ocuo *OidcClientUpdateOne) SetClientSecret(s string) *OidcClientUpdateOne {
+	ocuo.mutation.SetClientSecret(s)
+	return ocuo
+}
+
+// SetNillableClientSecret sets the "client_secret" field if the given value is not nil.
+func (ocuo *OidcClientUpdateOne) SetNillableClientSecret(s *string) *OidcClientUpdateOne {
+	if s != nil {
+		ocuo.SetClientSecret(*s)
 	}
 	return ocuo
 }
@@ -327,6 +363,11 @@ func (ocuo *OidcClientUpdateOne) check() error {
 			return &ValidationError{Name: "client_id", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_id": %w`, err)}
 		}
 	}
+	if v, ok := ocuo.mutation.ClientSecret(); ok {
+		if err := oidcclient.ClientSecretValidator(v); err != nil {
+			return &ValidationError{Name: "client_secret", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_secret": %w`, err)}
+		}
+	}
 	if ocuo.mutation.ProjectCleared() && len(ocuo.mutation.ProjectIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OidcClient.project"`)
 	}
@@ -367,6 +408,9 @@ func (ocuo *OidcClientUpdateOne) sqlSave(ctx context.Context) (_node *OidcClient
 	}
 	if value, ok := ocuo.mutation.ClientID(); ok {
 		_spec.SetField(oidcclient.FieldClientID, field.TypeString, value)
+	}
+	if value, ok := ocuo.mutation.ClientSecret(); ok {
+		_spec.SetField(oidcclient.FieldClientSecret, field.TypeString, value)
 	}
 	if value, ok := ocuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(oidcclient.FieldUpdatedAt, field.TypeTime, value)

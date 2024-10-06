@@ -66,6 +66,11 @@ func ClientID(v string) predicate.OidcClient {
 	return predicate.OidcClient(sql.FieldEQ(FieldClientID, v))
 }
 
+// ClientSecret applies equality check predicate on the "client_secret" field. It's identical to ClientSecretEQ.
+func ClientSecret(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldEQ(FieldClientSecret, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.OidcClient {
 	return predicate.OidcClient(sql.FieldEQ(FieldCreatedAt, v))
@@ -204,6 +209,71 @@ func ClientIDEqualFold(v string) predicate.OidcClient {
 // ClientIDContainsFold applies the ContainsFold predicate on the "client_id" field.
 func ClientIDContainsFold(v string) predicate.OidcClient {
 	return predicate.OidcClient(sql.FieldContainsFold(FieldClientID, v))
+}
+
+// ClientSecretEQ applies the EQ predicate on the "client_secret" field.
+func ClientSecretEQ(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldEQ(FieldClientSecret, v))
+}
+
+// ClientSecretNEQ applies the NEQ predicate on the "client_secret" field.
+func ClientSecretNEQ(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldNEQ(FieldClientSecret, v))
+}
+
+// ClientSecretIn applies the In predicate on the "client_secret" field.
+func ClientSecretIn(vs ...string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldIn(FieldClientSecret, vs...))
+}
+
+// ClientSecretNotIn applies the NotIn predicate on the "client_secret" field.
+func ClientSecretNotIn(vs ...string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldNotIn(FieldClientSecret, vs...))
+}
+
+// ClientSecretGT applies the GT predicate on the "client_secret" field.
+func ClientSecretGT(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldGT(FieldClientSecret, v))
+}
+
+// ClientSecretGTE applies the GTE predicate on the "client_secret" field.
+func ClientSecretGTE(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldGTE(FieldClientSecret, v))
+}
+
+// ClientSecretLT applies the LT predicate on the "client_secret" field.
+func ClientSecretLT(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldLT(FieldClientSecret, v))
+}
+
+// ClientSecretLTE applies the LTE predicate on the "client_secret" field.
+func ClientSecretLTE(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldLTE(FieldClientSecret, v))
+}
+
+// ClientSecretContains applies the Contains predicate on the "client_secret" field.
+func ClientSecretContains(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldContains(FieldClientSecret, v))
+}
+
+// ClientSecretHasPrefix applies the HasPrefix predicate on the "client_secret" field.
+func ClientSecretHasPrefix(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldHasPrefix(FieldClientSecret, v))
+}
+
+// ClientSecretHasSuffix applies the HasSuffix predicate on the "client_secret" field.
+func ClientSecretHasSuffix(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldHasSuffix(FieldClientSecret, v))
+}
+
+// ClientSecretEqualFold applies the EqualFold predicate on the "client_secret" field.
+func ClientSecretEqualFold(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldEqualFold(FieldClientSecret, v))
+}
+
+// ClientSecretContainsFold applies the ContainsFold predicate on the "client_secret" field.
+func ClientSecretContainsFold(v string) predicate.OidcClient {
+	return predicate.OidcClient(sql.FieldContainsFold(FieldClientSecret, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
