@@ -1,50 +1,56 @@
 package api
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"github.com/usegranthq/backend/api/middlewares"
 	"github.com/usegranthq/backend/api/services/auth"
 	"github.com/usegranthq/backend/api/services/projects"
-	"github.com/usegranthq/backend/api/services/webhooks"
-	"github.com/usegranthq/backend/middlewares"
+	"github.com/usegranthq/backend/api/services/public"
 )
 
-func healthCheckHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "OK"})
+func defineProjectRoutes(routerGroup *gin.RouterGroup) {
+	projectGroup := routerGroup.Group("/projects")
+	projectGroup.POST("/", projects.CreateProject)
+
+	projectIdGroup := projectGroup.Group("/:projectID")
+	projectIdGroup.Use(middlewares.ValidateProject())
+
+	projectIdGroup.DELETE("/", projects.DeleteProject)
+
+	clientGroup := projectIdGroup.Group("/clients")
+	clientGroup.POST("/", projects.CreateOidcClient)
+
+	clientIdGroup := clientGroup.Group("/:clientID")
+	clientIdGroup.Use(middlewares.ValidateClient())
+
+	clientIdGroup.GET("/token", projects.GetToken)
 }
 
-func rootHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Hello, World!"})
+func definePublicRoutes(routerGroup *gin.RouterGroup) {
+	routerGroup.GET("/", public.Root)
+	routerGroup.GET("/health", public.HealthCheck)
+	routerGroup.GET("/.well-known/openid-configuration", public.WellKnown)
 }
 
-func defineOtherRoutes(router *gin.RouterGroup) {
-	router.GET("/health", healthCheckHandler)
-	router.POST("/ory-token-hook", webhooks.OryTokenHook)
+func defineAuthRoutes(routerGroup *gin.RouterGroup) {
+	routerGroup.POST("/signup", auth.Signup)
+	routerGroup.POST("/login", auth.Login)
 }
 
-func defineAuthRoutes(router *gin.RouterGroup) {
-	router.POST("/signup", auth.Signup)
-	router.POST("/login", auth.Login)
-}
-
-func defineProjectsRoutes(router *gin.RouterGroup) {
-	router.POST("/projects", projects.CreateProject)
-	router.DELETE("/projects/:id", projects.DeleteProject)
-	router.POST("/projects/:id/clients", projects.CreateOidcClient)
-	router.GET("/projects/:id/clients/:client_id/token", projects.GetToken)
+func defineProtectedRoutes(routerGroup *gin.RouterGroup) {
+	defineProjectRoutes(routerGroup)
 }
 
 func SetupRoutes(router *gin.Engine) {
-	router.GET("/", rootHandler)
+	defaultRouterGroup := router.Group("/")
 
-	apiRouter := router.Group("/api")
-	apiV1Router := apiRouter.Group("/v1")
+	apiRouterGroup := router.Group("/api")
+	apiV1RouterGroup := apiRouterGroup.Group("/v1")
 
-	protectedRouter := apiV1Router.Group("/")
-	protectedRouter.Use(middlewares.Auth())
+	protectedRouterGroup := apiV1RouterGroup.Group("/")
+	protectedRouterGroup.Use(middlewares.Auth())
 
-	defineOtherRoutes(apiV1Router)
-	defineAuthRoutes(apiV1Router)
-	defineProjectsRoutes(protectedRouter)
+	definePublicRoutes(defaultRouterGroup)
+	defineAuthRoutes(apiV1RouterGroup)
+	defineProtectedRoutes(protectedRouterGroup)
 }

@@ -1,4 +1,6 @@
 tmp/
 .tmp/
+bin/
 .env
 .env.local
+*.md

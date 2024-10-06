@@ -2,11 +2,11 @@ package auth
 
 import (
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/usegranthq/backend/config"
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent"
 	"github.com/usegranthq/backend/ent/user"
@@ -53,7 +53,7 @@ func Login(c *gin.Context) {
 		"exp": time.Now().Add(time.Hour * 24).Unix(),
 	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(os.Getenv("JWT_SECRET")))
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(config.Get("JWT_SECRET")))
 	if err != nil {
 		utils.HttpError.InternalServerError(c)
 		return
@@ -75,7 +75,7 @@ func Login(c *gin.Context) {
 
 	// set cookie
 	cookieExpiry := int(tokenExpiry.Sub(time.Now()).Seconds())
-	secure := os.Getenv("NODE_ENV") == "production"
+	secure := config.Get("NODE_ENV") == "production"
 	domain := "/"
 	c.SetCookie("auth", token, cookieExpiry, "/", domain, secure, true)
 

@@ -3,10 +3,10 @@ package db
 import (
 	"context"
 	"log"
-	"os"
 
 	"entgo.io/ent/dialect"
 	_ "github.com/lib/pq"
+	"github.com/usegranthq/backend/config"
 	"github.com/usegranthq/backend/ent"
 )
 
@@ -16,11 +16,11 @@ func Connect() {
 	var err error
 
 	// Get database connection details from environment variables
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbUser := os.Getenv("DB_USER")
-	dbName := os.Getenv("DB_NAME")
-	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := config.Get("DB_HOST")
+	dbPort := config.Get("DB_PORT")
+	dbUser := config.Get("DB_USER")
+	dbName := config.Get("DB_NAME")
+	dbPassword := config.Get("DB_PASSWORD")
 
 	// Construct the database connection string
 	dsn := "host=" + dbHost + " port=" + dbPort + " user=" + dbUser + " dbname=" + dbName + " password=" + dbPassword + " sslmode=disable"

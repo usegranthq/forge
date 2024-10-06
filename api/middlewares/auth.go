@@ -1,12 +1,12 @@
 package middlewares
 
 import (
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/usegranthq/backend/config"
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent/usersession"
 	"github.com/usegranthq/backend/utils"
@@ -23,7 +23,7 @@ func Auth() gin.HandlerFunc {
 
 		// Parse the token
 		claims, err := jwt.ParseWithClaims(token, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT_SECRET")), nil
+			return []byte(config.Get("JWT_SECRET")), nil
 		})
 
 		if err != nil {
@@ -72,7 +72,7 @@ func Auth() gin.HandlerFunc {
 		}
 
 		c.Set("user", user)
-		c.Set("user_id", user.ID)
+		c.Set("userID", user.ID)
 		c.Next()
 	}
 }
