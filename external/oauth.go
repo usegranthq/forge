@@ -51,7 +51,7 @@ func (o *ExternalOidc) Request(method, url string, payload interface{}, response
 	return nil
 }
 
-func (o *ExternalOidc) RequestToken(c *gin.Context, clientID, clientSecret string, audience []string) (string, error) {
+func (o *ExternalOidc) RequestToken(c *gin.Context, clientID, clientSecret string) (string, error) {
 	tokenEndpoint := serverURL("/oauth2/token")
 
 	conf := &clientcredentials.Config{
@@ -59,9 +59,6 @@ func (o *ExternalOidc) RequestToken(c *gin.Context, clientID, clientSecret strin
 		ClientSecret: clientSecret,
 		TokenURL:     tokenEndpoint,
 		AuthStyle:    oauth2.AuthStyleInHeader,
-		EndpointParams: map[string][]string{
-			"audience": {"sts.amazonaws.com"},
-		},
 	}
 
 	token, err := conf.Token(c)

@@ -12,7 +12,8 @@ import (
 )
 
 type createOidcClientRequest struct {
-	Name string `json:"name" binding:"required"`
+	Name     string `json:"name" binding:"required"`
+	Audience string `json:"audience" binding:"required"`
 }
 
 type createOidcClientResponse struct {
@@ -23,9 +24,8 @@ type createOidcClientResponse struct {
 }
 
 type getTokenRequest struct {
-	ClientID     string   `json:"client_id" binding:"required"`
-	ClientSecret string   `json:"client_secret" binding:"required"`
-	Audience     []string `json:"audience" binding:"required"`
+	ClientID     string `json:"client_id" binding:"required"`
+	ClientSecret string `json:"client_secret" binding:"required"`
 }
 
 func CreateOidcClient(c *gin.Context) {
@@ -39,10 +39,12 @@ func CreateOidcClient(c *gin.Context) {
 	}
 
 	payload := map[string]interface{}{
+		"client_name":                req.Name,
 		"grant_types":                []string{"client_credentials"},
 		"token_endpoint_auth_method": "client_secret_basic",
 		"redirect_uris":              []string{"https://placeholder.usegranthq.com/callback"},
 		"response_types":             []string{"none"},
+		"audience":                   req.Audience,
 	}
 
 	var response createOidcClientResponse
@@ -80,7 +82,7 @@ func GetToken(c *gin.Context) {
 		return
 	}
 
-	token, err := external.Oidc.RequestToken(c, req.ClientID, req.ClientSecret, req.Audience)
+	token, err := external.Oidc.RequestToken(c, req.ClientID, req.ClientSecret)
 	if err != nil {
 		fmt.Println("error getting token", err)
 		utils.HttpError.InternalServerError(c)
