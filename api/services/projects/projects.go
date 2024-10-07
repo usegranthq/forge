@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/usegranthq/backend/db"
+	"github.com/usegranthq/backend/external"
 	"github.com/usegranthq/backend/utils"
 )
 
@@ -29,6 +30,17 @@ func CreateProject(c *gin.Context) {
 		SetDescription(req.Description).
 		Save(c)
 
+	if err != nil {
+		utils.HttpError.InternalServerError(c)
+		return
+	}
+
+	// register project in oidc provider
+	payload := map[string]interface{}{
+		"id":     project.ID.String(),
+		"domain": "",
+	}
+	err = external.Oidc.Request("POST", "/projects", payload, nil)
 	if err != nil {
 		utils.HttpError.InternalServerError(c)
 		return

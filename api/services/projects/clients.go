@@ -1,7 +1,6 @@
 package projects
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -45,6 +44,7 @@ func CreateOidcClient(c *gin.Context) {
 		"redirect_uris":              []string{"https://placeholder.usegranthq.com/callback"},
 		"response_types":             []string{"none"},
 		"audience":                   req.Audience,
+		"$$pid":                      projectID.String(),
 	}
 
 	var response createOidcClientResponse
@@ -84,7 +84,6 @@ func GetToken(c *gin.Context) {
 
 	token, err := external.Oidc.RequestToken(c, req.ClientID, req.ClientSecret)
 	if err != nil {
-		fmt.Println("error getting token", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
