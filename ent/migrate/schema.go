@@ -59,8 +59,8 @@ var (
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "email", Type: field.TypeString, Unique: true},
-		{Name: "password", Type: field.TypeString},
 		{Name: "last_login", Type: field.TypeTime, Nullable: true},
+		{Name: "verified_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -93,12 +93,38 @@ var (
 			},
 		},
 	}
+	// UserVerificationsColumns holds the columns for the "user_verifications" table.
+	UserVerificationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "attempt_id", Type: field.TypeUUID},
+		{Name: "code", Type: field.TypeString},
+		{Name: "attempts", Type: field.TypeInt, Default: 0},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_user_verifications", Type: field.TypeUUID},
+	}
+	// UserVerificationsTable holds the schema information for the "user_verifications" table.
+	UserVerificationsTable = &schema.Table{
+		Name:       "user_verifications",
+		Columns:    UserVerificationsColumns,
+		PrimaryKey: []*schema.Column{UserVerificationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_verifications_users_user_verifications",
+				Columns:    []*schema.Column{UserVerificationsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		OidcClientsTable,
 		ProjectsTable,
 		UsersTable,
 		UserSessionsTable,
+		UserVerificationsTable,
 	}
 )
 
@@ -106,4 +132,5 @@ func init() {
 	OidcClientsTable.ForeignKeys[0].RefTable = ProjectsTable
 	ProjectsTable.ForeignKeys[0].RefTable = UsersTable
 	UserSessionsTable.ForeignKeys[0].RefTable = UsersTable
+	UserVerificationsTable.ForeignKeys[0].RefTable = UsersTable
 }

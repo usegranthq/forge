@@ -16,6 +16,7 @@ import (
 	"github.com/usegranthq/backend/ent/project"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
+	"github.com/usegranthq/backend/ent/userverification"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -76,10 +77,11 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			oidcclient.Table:  oidcclient.ValidColumn,
-			project.Table:     project.ValidColumn,
-			user.Table:        user.ValidColumn,
-			usersession.Table: usersession.ValidColumn,
+			oidcclient.Table:       oidcclient.ValidColumn,
+			project.Table:          project.ValidColumn,
+			user.Table:             user.ValidColumn,
+			usersession.Table:      usersession.ValidColumn,
+			userverification.Table: userverification.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

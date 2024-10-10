@@ -17,17 +17,19 @@ import (
 	"github.com/usegranthq/backend/ent/project"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
+	"github.com/usegranthq/backend/ent/userverification"
 )
 
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx              *QueryContext
-	order            []user.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.User
-	withUserSessions *UserSessionQuery
-	withProjects     *ProjectQuery
+	ctx                   *QueryContext
+	order                 []user.OrderOption
+	inters                []Interceptor
+	predicates            []predicate.User
+	withUserSessions      *UserSessionQuery
+	withProjects          *ProjectQuery
+	withUserVerifications *UserVerificationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -101,6 +103,28 @@ func (uq *UserQuery) QueryProjects() *ProjectQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(project.Table, project.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.ProjectsTable, user.ProjectsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserVerifications chains the current query on the "user_verifications" edge.
+func (uq *UserQuery) QueryUserVerifications() *UserVerificationQuery {
+	query := (&UserVerificationClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(userverification.Table, userverification.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UserVerificationsTable, user.UserVerificationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -295,13 +319,14 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:           uq.config,
-		ctx:              uq.ctx.Clone(),
-		order:            append([]user.OrderOption{}, uq.order...),
-		inters:           append([]Interceptor{}, uq.inters...),
-		predicates:       append([]predicate.User{}, uq.predicates...),
-		withUserSessions: uq.withUserSessions.Clone(),
-		withProjects:     uq.withProjects.Clone(),
+		config:                uq.config,
+		ctx:                   uq.ctx.Clone(),
+		order:                 append([]user.OrderOption{}, uq.order...),
+		inters:                append([]Interceptor{}, uq.inters...),
+		predicates:            append([]predicate.User{}, uq.predicates...),
+		withUserSessions:      uq.withUserSessions.Clone(),
+		withProjects:          uq.withProjects.Clone(),
+		withUserVerifications: uq.withUserVerifications.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -327,6 +352,17 @@ func (uq *UserQuery) WithProjects(opts ...func(*ProjectQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withProjects = query
+	return uq
+}
+
+// WithUserVerifications tells the query-builder to eager-load the nodes that are connected to
+// the "user_verifications" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithUserVerifications(opts ...func(*UserVerificationQuery)) *UserQuery {
+	query := (&UserVerificationClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withUserVerifications = query
 	return uq
 }
 
@@ -408,9 +444,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			uq.withUserSessions != nil,
 			uq.withProjects != nil,
+			uq.withUserVerifications != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -442,6 +479,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadProjects(ctx, query, nodes,
 			func(n *User) { n.Edges.Projects = []*Project{} },
 			func(n *User, e *Project) { n.Edges.Projects = append(n.Edges.Projects, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withUserVerifications; query != nil {
+		if err := uq.loadUserVerifications(ctx, query, nodes,
+			func(n *User) { n.Edges.UserVerifications = []*UserVerification{} },
+			func(n *User, e *UserVerification) { n.Edges.UserVerifications = append(n.Edges.UserVerifications, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -505,6 +549,37 @@ func (uq *UserQuery) loadProjects(ctx context.Context, query *ProjectQuery, node
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_projects" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadUserVerifications(ctx context.Context, query *UserVerificationQuery, nodes []*User, init func(*User), assign func(*User, *UserVerification)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.UserVerification(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UserVerificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_user_verifications
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_user_verifications" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_user_verifications" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

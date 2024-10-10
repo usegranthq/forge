@@ -35,6 +35,7 @@ func definePublicRoutes(routerGroup *gin.RouterGroup) {
 func defineAuthRoutes(routerGroup *gin.RouterGroup) {
 	routerGroup.POST("/signup", auth.Signup)
 	routerGroup.POST("/login", auth.Login)
+	routerGroup.POST("/verify", auth.Verify)
 }
 
 func defineProtectedRoutes(routerGroup *gin.RouterGroup) {

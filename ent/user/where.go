@@ -61,14 +61,14 @@ func Email(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEmail, v))
 }
 
-// Password applies equality check predicate on the "password" field. It's identical to PasswordEQ.
-func Password(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldPassword, v))
-}
-
 // LastLogin applies equality check predicate on the "last_login" field. It's identical to LastLoginEQ.
 func LastLogin(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldLastLogin, v))
+}
+
+// VerifiedAt applies equality check predicate on the "verified_at" field. It's identical to VerifiedAtEQ.
+func VerifiedAt(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldVerifiedAt, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -146,71 +146,6 @@ func EmailContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldEmail, v))
 }
 
-// PasswordEQ applies the EQ predicate on the "password" field.
-func PasswordEQ(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldPassword, v))
-}
-
-// PasswordNEQ applies the NEQ predicate on the "password" field.
-func PasswordNEQ(v string) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldPassword, v))
-}
-
-// PasswordIn applies the In predicate on the "password" field.
-func PasswordIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldIn(FieldPassword, vs...))
-}
-
-// PasswordNotIn applies the NotIn predicate on the "password" field.
-func PasswordNotIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldPassword, vs...))
-}
-
-// PasswordGT applies the GT predicate on the "password" field.
-func PasswordGT(v string) predicate.User {
-	return predicate.User(sql.FieldGT(FieldPassword, v))
-}
-
-// PasswordGTE applies the GTE predicate on the "password" field.
-func PasswordGTE(v string) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldPassword, v))
-}
-
-// PasswordLT applies the LT predicate on the "password" field.
-func PasswordLT(v string) predicate.User {
-	return predicate.User(sql.FieldLT(FieldPassword, v))
-}
-
-// PasswordLTE applies the LTE predicate on the "password" field.
-func PasswordLTE(v string) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldPassword, v))
-}
-
-// PasswordContains applies the Contains predicate on the "password" field.
-func PasswordContains(v string) predicate.User {
-	return predicate.User(sql.FieldContains(FieldPassword, v))
-}
-
-// PasswordHasPrefix applies the HasPrefix predicate on the "password" field.
-func PasswordHasPrefix(v string) predicate.User {
-	return predicate.User(sql.FieldHasPrefix(FieldPassword, v))
-}
-
-// PasswordHasSuffix applies the HasSuffix predicate on the "password" field.
-func PasswordHasSuffix(v string) predicate.User {
-	return predicate.User(sql.FieldHasSuffix(FieldPassword, v))
-}
-
-// PasswordEqualFold applies the EqualFold predicate on the "password" field.
-func PasswordEqualFold(v string) predicate.User {
-	return predicate.User(sql.FieldEqualFold(FieldPassword, v))
-}
-
-// PasswordContainsFold applies the ContainsFold predicate on the "password" field.
-func PasswordContainsFold(v string) predicate.User {
-	return predicate.User(sql.FieldContainsFold(FieldPassword, v))
-}
-
 // LastLoginEQ applies the EQ predicate on the "last_login" field.
 func LastLoginEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldLastLogin, v))
@@ -259,6 +194,56 @@ func LastLoginIsNil() predicate.User {
 // LastLoginNotNil applies the NotNil predicate on the "last_login" field.
 func LastLoginNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldLastLogin))
+}
+
+// VerifiedAtEQ applies the EQ predicate on the "verified_at" field.
+func VerifiedAtEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldVerifiedAt, v))
+}
+
+// VerifiedAtNEQ applies the NEQ predicate on the "verified_at" field.
+func VerifiedAtNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldVerifiedAt, v))
+}
+
+// VerifiedAtIn applies the In predicate on the "verified_at" field.
+func VerifiedAtIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldVerifiedAt, vs...))
+}
+
+// VerifiedAtNotIn applies the NotIn predicate on the "verified_at" field.
+func VerifiedAtNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldVerifiedAt, vs...))
+}
+
+// VerifiedAtGT applies the GT predicate on the "verified_at" field.
+func VerifiedAtGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldVerifiedAt, v))
+}
+
+// VerifiedAtGTE applies the GTE predicate on the "verified_at" field.
+func VerifiedAtGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldVerifiedAt, v))
+}
+
+// VerifiedAtLT applies the LT predicate on the "verified_at" field.
+func VerifiedAtLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldVerifiedAt, v))
+}
+
+// VerifiedAtLTE applies the LTE predicate on the "verified_at" field.
+func VerifiedAtLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldVerifiedAt, v))
+}
+
+// VerifiedAtIsNil applies the IsNil predicate on the "verified_at" field.
+func VerifiedAtIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldVerifiedAt))
+}
+
+// VerifiedAtNotNil applies the NotNil predicate on the "verified_at" field.
+func VerifiedAtNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldVerifiedAt))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -379,6 +364,29 @@ func HasProjects() predicate.User {
 func HasProjectsWith(preds ...predicate.Project) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newProjectsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUserVerifications applies the HasEdge predicate on the "user_verifications" edge.
+func HasUserVerifications() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UserVerificationsTable, UserVerificationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserVerificationsWith applies the HasEdge predicate on the "user_verifications" edge with a given conditions (other predicates).
+func HasUserVerificationsWith(preds ...predicate.UserVerification) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newUserVerificationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -20,10 +20,10 @@ type User struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
-	// Password holds the value of the "password" field.
-	Password string `json:"-"`
 	// LastLogin holds the value of the "last_login" field.
 	LastLogin time.Time `json:"last_login,omitempty"`
+	// VerifiedAt holds the value of the "verified_at" field.
+	VerifiedAt time.Time `json:"verified_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -40,9 +40,11 @@ type UserEdges struct {
 	UserSessions []*UserSession `json:"user_sessions,omitempty"`
 	// Projects holds the value of the projects edge.
 	Projects []*Project `json:"projects,omitempty"`
+	// UserVerifications holds the value of the user_verifications edge.
+	UserVerifications []*UserVerification `json:"user_verifications,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // UserSessionsOrErr returns the UserSessions value or an error if the edge
@@ -63,14 +65,23 @@ func (e UserEdges) ProjectsOrErr() ([]*Project, error) {
 	return nil, &NotLoadedError{edge: "projects"}
 }
 
+// UserVerificationsOrErr returns the UserVerifications value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UserVerificationsOrErr() ([]*UserVerification, error) {
+	if e.loadedTypes[2] {
+		return e.UserVerifications, nil
+	}
+	return nil, &NotLoadedError{edge: "user_verifications"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldEmail, user.FieldPassword:
+		case user.FieldEmail:
 			values[i] = new(sql.NullString)
-		case user.FieldLastLogin, user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldLastLogin, user.FieldVerifiedAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
@@ -101,17 +112,17 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Email = value.String
 			}
-		case user.FieldPassword:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field password", values[i])
-			} else if value.Valid {
-				u.Password = value.String
-			}
 		case user.FieldLastLogin:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field last_login", values[i])
 			} else if value.Valid {
 				u.LastLogin = value.Time
+			}
+		case user.FieldVerifiedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field verified_at", values[i])
+			} else if value.Valid {
+				u.VerifiedAt = value.Time
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -148,6 +159,11 @@ func (u *User) QueryProjects() *ProjectQuery {
 	return NewUserClient(u.config).QueryProjects(u)
 }
 
+// QueryUserVerifications queries the "user_verifications" edge of the User entity.
+func (u *User) QueryUserVerifications() *UserVerificationQuery {
+	return NewUserClient(u.config).QueryUserVerifications(u)
+}
+
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -174,10 +190,11 @@ func (u *User) String() string {
 	builder.WriteString("email=")
 	builder.WriteString(u.Email)
 	builder.WriteString(", ")
-	builder.WriteString("password=<sensitive>")
-	builder.WriteString(", ")
 	builder.WriteString("last_login=")
 	builder.WriteString(u.LastLogin.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("verified_at=")
+	builder.WriteString(u.VerifiedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))

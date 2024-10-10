@@ -17,10 +17,10 @@ const (
 	FieldID = "id"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
-	// FieldPassword holds the string denoting the password field in the database.
-	FieldPassword = "password"
 	// FieldLastLogin holds the string denoting the last_login field in the database.
 	FieldLastLogin = "last_login"
+	// FieldVerifiedAt holds the string denoting the verified_at field in the database.
+	FieldVerifiedAt = "verified_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -29,6 +29,8 @@ const (
 	EdgeUserSessions = "user_sessions"
 	// EdgeProjects holds the string denoting the projects edge name in mutations.
 	EdgeProjects = "projects"
+	// EdgeUserVerifications holds the string denoting the user_verifications edge name in mutations.
+	EdgeUserVerifications = "user_verifications"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// UserSessionsTable is the table that holds the user_sessions relation/edge.
@@ -45,14 +47,21 @@ const (
 	ProjectsInverseTable = "projects"
 	// ProjectsColumn is the table column denoting the projects relation/edge.
 	ProjectsColumn = "user_projects"
+	// UserVerificationsTable is the table that holds the user_verifications relation/edge.
+	UserVerificationsTable = "user_verifications"
+	// UserVerificationsInverseTable is the table name for the UserVerification entity.
+	// It exists in this package in order to avoid circular dependency with the "userverification" package.
+	UserVerificationsInverseTable = "user_verifications"
+	// UserVerificationsColumn is the table column denoting the user_verifications relation/edge.
+	UserVerificationsColumn = "user_user_verifications"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
 	FieldEmail,
-	FieldPassword,
 	FieldLastLogin,
+	FieldVerifiedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -70,8 +79,6 @@ func ValidColumn(column string) bool {
 var (
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
-	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
-	PasswordValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -95,14 +102,14 @@ func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
 }
 
-// ByPassword orders the results by the password field.
-func ByPassword(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPassword, opts...).ToFunc()
-}
-
 // ByLastLogin orders the results by the last_login field.
 func ByLastLogin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastLogin, opts...).ToFunc()
+}
+
+// ByVerifiedAt orders the results by the verified_at field.
+func ByVerifiedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVerifiedAt, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.
@@ -142,6 +149,20 @@ func ByProjects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newProjectsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByUserVerificationsCount orders the results by user_verifications count.
+func ByUserVerificationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUserVerificationsStep(), opts...)
+	}
+}
+
+// ByUserVerifications orders the results by user_verifications terms.
+func ByUserVerifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserVerificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserSessionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -154,5 +175,12 @@ func newProjectsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProjectsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ProjectsTable, ProjectsColumn),
+	)
+}
+func newUserVerificationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserVerificationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UserVerificationsTable, UserVerificationsColumn),
 	)
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/usegranthq/backend/ent/project"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
+	"github.com/usegranthq/backend/ent/userverification"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -45,20 +46,6 @@ func (uu *UserUpdate) SetNillableEmail(s *string) *UserUpdate {
 	return uu
 }
 
-// SetPassword sets the "password" field.
-func (uu *UserUpdate) SetPassword(s string) *UserUpdate {
-	uu.mutation.SetPassword(s)
-	return uu
-}
-
-// SetNillablePassword sets the "password" field if the given value is not nil.
-func (uu *UserUpdate) SetNillablePassword(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetPassword(*s)
-	}
-	return uu
-}
-
 // SetLastLogin sets the "last_login" field.
 func (uu *UserUpdate) SetLastLogin(t time.Time) *UserUpdate {
 	uu.mutation.SetLastLogin(t)
@@ -76,6 +63,26 @@ func (uu *UserUpdate) SetNillableLastLogin(t *time.Time) *UserUpdate {
 // ClearLastLogin clears the value of the "last_login" field.
 func (uu *UserUpdate) ClearLastLogin() *UserUpdate {
 	uu.mutation.ClearLastLogin()
+	return uu
+}
+
+// SetVerifiedAt sets the "verified_at" field.
+func (uu *UserUpdate) SetVerifiedAt(t time.Time) *UserUpdate {
+	uu.mutation.SetVerifiedAt(t)
+	return uu
+}
+
+// SetNillableVerifiedAt sets the "verified_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableVerifiedAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetVerifiedAt(*t)
+	}
+	return uu
+}
+
+// ClearVerifiedAt clears the value of the "verified_at" field.
+func (uu *UserUpdate) ClearVerifiedAt() *UserUpdate {
+	uu.mutation.ClearVerifiedAt()
 	return uu
 }
 
@@ -113,6 +120,21 @@ func (uu *UserUpdate) AddProjects(p ...*Project) *UserUpdate {
 		ids[i] = p[i].ID
 	}
 	return uu.AddProjectIDs(ids...)
+}
+
+// AddUserVerificationIDs adds the "user_verifications" edge to the UserVerification entity by IDs.
+func (uu *UserUpdate) AddUserVerificationIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddUserVerificationIDs(ids...)
+	return uu
+}
+
+// AddUserVerifications adds the "user_verifications" edges to the UserVerification entity.
+func (uu *UserUpdate) AddUserVerifications(u ...*UserVerification) *UserUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.AddUserVerificationIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -162,6 +184,27 @@ func (uu *UserUpdate) RemoveProjects(p ...*Project) *UserUpdate {
 	return uu.RemoveProjectIDs(ids...)
 }
 
+// ClearUserVerifications clears all "user_verifications" edges to the UserVerification entity.
+func (uu *UserUpdate) ClearUserVerifications() *UserUpdate {
+	uu.mutation.ClearUserVerifications()
+	return uu
+}
+
+// RemoveUserVerificationIDs removes the "user_verifications" edge to UserVerification entities by IDs.
+func (uu *UserUpdate) RemoveUserVerificationIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveUserVerificationIDs(ids...)
+	return uu
+}
+
+// RemoveUserVerifications removes "user_verifications" edges to UserVerification entities.
+func (uu *UserUpdate) RemoveUserVerifications(u ...*UserVerification) *UserUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.RemoveUserVerificationIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
 	uu.defaults()
@@ -205,11 +248,6 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -228,14 +266,17 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
-	if value, ok := uu.mutation.Password(); ok {
-		_spec.SetField(user.FieldPassword, field.TypeString, value)
-	}
 	if value, ok := uu.mutation.LastLogin(); ok {
 		_spec.SetField(user.FieldLastLogin, field.TypeTime, value)
 	}
 	if uu.mutation.LastLoginCleared() {
 		_spec.ClearField(user.FieldLastLogin, field.TypeTime)
+	}
+	if value, ok := uu.mutation.VerifiedAt(); ok {
+		_spec.SetField(user.FieldVerifiedAt, field.TypeTime, value)
+	}
+	if uu.mutation.VerifiedAtCleared() {
+		_spec.ClearField(user.FieldVerifiedAt, field.TypeTime)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -330,6 +371,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.UserVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserVerificationsTable,
+			Columns: []string{user.UserVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedUserVerificationsIDs(); len(nodes) > 0 && !uu.mutation.UserVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserVerificationsTable,
+			Columns: []string{user.UserVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.UserVerificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserVerificationsTable,
+			Columns: []string{user.UserVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -364,20 +450,6 @@ func (uuo *UserUpdateOne) SetNillableEmail(s *string) *UserUpdateOne {
 	return uuo
 }
 
-// SetPassword sets the "password" field.
-func (uuo *UserUpdateOne) SetPassword(s string) *UserUpdateOne {
-	uuo.mutation.SetPassword(s)
-	return uuo
-}
-
-// SetNillablePassword sets the "password" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillablePassword(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetPassword(*s)
-	}
-	return uuo
-}
-
 // SetLastLogin sets the "last_login" field.
 func (uuo *UserUpdateOne) SetLastLogin(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetLastLogin(t)
@@ -395,6 +467,26 @@ func (uuo *UserUpdateOne) SetNillableLastLogin(t *time.Time) *UserUpdateOne {
 // ClearLastLogin clears the value of the "last_login" field.
 func (uuo *UserUpdateOne) ClearLastLogin() *UserUpdateOne {
 	uuo.mutation.ClearLastLogin()
+	return uuo
+}
+
+// SetVerifiedAt sets the "verified_at" field.
+func (uuo *UserUpdateOne) SetVerifiedAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetVerifiedAt(t)
+	return uuo
+}
+
+// SetNillableVerifiedAt sets the "verified_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableVerifiedAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetVerifiedAt(*t)
+	}
+	return uuo
+}
+
+// ClearVerifiedAt clears the value of the "verified_at" field.
+func (uuo *UserUpdateOne) ClearVerifiedAt() *UserUpdateOne {
+	uuo.mutation.ClearVerifiedAt()
 	return uuo
 }
 
@@ -432,6 +524,21 @@ func (uuo *UserUpdateOne) AddProjects(p ...*Project) *UserUpdateOne {
 		ids[i] = p[i].ID
 	}
 	return uuo.AddProjectIDs(ids...)
+}
+
+// AddUserVerificationIDs adds the "user_verifications" edge to the UserVerification entity by IDs.
+func (uuo *UserUpdateOne) AddUserVerificationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddUserVerificationIDs(ids...)
+	return uuo
+}
+
+// AddUserVerifications adds the "user_verifications" edges to the UserVerification entity.
+func (uuo *UserUpdateOne) AddUserVerifications(u ...*UserVerification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.AddUserVerificationIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -479,6 +586,27 @@ func (uuo *UserUpdateOne) RemoveProjects(p ...*Project) *UserUpdateOne {
 		ids[i] = p[i].ID
 	}
 	return uuo.RemoveProjectIDs(ids...)
+}
+
+// ClearUserVerifications clears all "user_verifications" edges to the UserVerification entity.
+func (uuo *UserUpdateOne) ClearUserVerifications() *UserUpdateOne {
+	uuo.mutation.ClearUserVerifications()
+	return uuo
+}
+
+// RemoveUserVerificationIDs removes the "user_verifications" edge to UserVerification entities by IDs.
+func (uuo *UserUpdateOne) RemoveUserVerificationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveUserVerificationIDs(ids...)
+	return uuo
+}
+
+// RemoveUserVerifications removes "user_verifications" edges to UserVerification entities.
+func (uuo *UserUpdateOne) RemoveUserVerifications(u ...*UserVerification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.RemoveUserVerificationIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -537,11 +665,6 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -577,14 +700,17 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
-	if value, ok := uuo.mutation.Password(); ok {
-		_spec.SetField(user.FieldPassword, field.TypeString, value)
-	}
 	if value, ok := uuo.mutation.LastLogin(); ok {
 		_spec.SetField(user.FieldLastLogin, field.TypeTime, value)
 	}
 	if uuo.mutation.LastLoginCleared() {
 		_spec.ClearField(user.FieldLastLogin, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.VerifiedAt(); ok {
+		_spec.SetField(user.FieldVerifiedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.VerifiedAtCleared() {
+		_spec.ClearField(user.FieldVerifiedAt, field.TypeTime)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -672,6 +798,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.UserVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserVerificationsTable,
+			Columns: []string{user.UserVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedUserVerificationsIDs(); len(nodes) > 0 && !uuo.mutation.UserVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserVerificationsTable,
+			Columns: []string{user.UserVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.UserVerificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserVerificationsTable,
+			Columns: []string{user.UserVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

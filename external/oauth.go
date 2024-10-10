@@ -11,16 +11,16 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 )
 
-type ExternalOidc struct{}
+type externalOidc struct{}
 
-var Oidc = &ExternalOidc{}
+var Oidc = &externalOidc{}
 
-func serverURL(path string) string {
+func (o *externalOidc) serverURL(path string) string {
 	return fmt.Sprintf("%s%s", os.Getenv("OAUTH_SERVER_URL"), path)
 }
 
-func createAuthenticatedRequest() *resty.Request {
-	baseURL := serverURL("/")
+func (o *externalOidc) createAuthenticatedRequest() *resty.Request {
+	baseURL := o.serverURL("/")
 
 	client := resty.New()
 	client.SetBaseURL(baseURL)
@@ -31,8 +31,8 @@ func createAuthenticatedRequest() *resty.Request {
 	return request
 }
 
-func (o *ExternalOidc) Request(method, url string, payload interface{}, responseStruct interface{}) error {
-	request := createAuthenticatedRequest()
+func (o *externalOidc) Request(method, url string, payload interface{}, responseStruct interface{}) error {
+	request := o.createAuthenticatedRequest()
 	request.SetResult(responseStruct)
 
 	if method == "POST" {
@@ -51,8 +51,8 @@ func (o *ExternalOidc) Request(method, url string, payload interface{}, response
 	return nil
 }
 
-func (o *ExternalOidc) RequestToken(c *gin.Context, clientID, clientSecret string) (string, error) {
-	tokenEndpoint := serverURL("/oauth2/token")
+func (o *externalOidc) RequestToken(c *gin.Context, clientID, clientSecret string) (string, error) {
+	tokenEndpoint := o.serverURL("/oauth2/token")
 
 	conf := &clientcredentials.Config{
 		ClientID:     clientID,

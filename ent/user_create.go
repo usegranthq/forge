@@ -14,6 +14,7 @@ import (
 	"github.com/usegranthq/backend/ent/project"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
+	"github.com/usegranthq/backend/ent/userverification"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -29,12 +30,6 @@ func (uc *UserCreate) SetEmail(s string) *UserCreate {
 	return uc
 }
 
-// SetPassword sets the "password" field.
-func (uc *UserCreate) SetPassword(s string) *UserCreate {
-	uc.mutation.SetPassword(s)
-	return uc
-}
-
 // SetLastLogin sets the "last_login" field.
 func (uc *UserCreate) SetLastLogin(t time.Time) *UserCreate {
 	uc.mutation.SetLastLogin(t)
@@ -45,6 +40,20 @@ func (uc *UserCreate) SetLastLogin(t time.Time) *UserCreate {
 func (uc *UserCreate) SetNillableLastLogin(t *time.Time) *UserCreate {
 	if t != nil {
 		uc.SetLastLogin(*t)
+	}
+	return uc
+}
+
+// SetVerifiedAt sets the "verified_at" field.
+func (uc *UserCreate) SetVerifiedAt(t time.Time) *UserCreate {
+	uc.mutation.SetVerifiedAt(t)
+	return uc
+}
+
+// SetNillableVerifiedAt sets the "verified_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableVerifiedAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetVerifiedAt(*t)
 	}
 	return uc
 }
@@ -121,6 +130,21 @@ func (uc *UserCreate) AddProjects(p ...*Project) *UserCreate {
 	return uc.AddProjectIDs(ids...)
 }
 
+// AddUserVerificationIDs adds the "user_verifications" edge to the UserVerification entity by IDs.
+func (uc *UserCreate) AddUserVerificationIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddUserVerificationIDs(ids...)
+	return uc
+}
+
+// AddUserVerifications adds the "user_verifications" edges to the UserVerification entity.
+func (uc *UserCreate) AddUserVerifications(u ...*UserVerification) *UserCreate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddUserVerificationIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -180,14 +204,6 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.Password(); !ok {
-		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "User.password"`)}
-	}
-	if v, ok := uc.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
-		}
-	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
 	}
@@ -233,13 +249,13 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 		_node.Email = value
 	}
-	if value, ok := uc.mutation.Password(); ok {
-		_spec.SetField(user.FieldPassword, field.TypeString, value)
-		_node.Password = value
-	}
 	if value, ok := uc.mutation.LastLogin(); ok {
 		_spec.SetField(user.FieldLastLogin, field.TypeTime, value)
 		_node.LastLogin = value
+	}
+	if value, ok := uc.mutation.VerifiedAt(); ok {
+		_spec.SetField(user.FieldVerifiedAt, field.TypeTime, value)
+		_node.VerifiedAt = value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
@@ -274,6 +290,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.UserVerificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserVerificationsTable,
+			Columns: []string{user.UserVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
