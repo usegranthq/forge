@@ -27,7 +27,7 @@ const (
 )
 
 func StartUserVerification(c *gin.Context, user *ent.User) {
-	attemptExpiry := time.Now().Add(24 * time.Hour)
+	attemptExpiry := time.Now().Add(30 * time.Minute)
 	attemptId := uuid.New()
 
 	codeOptions := unique.Options{
