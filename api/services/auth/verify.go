@@ -45,6 +45,7 @@ func StartUserVerification(c *gin.Context, user *ent.User) {
 	code := unique.New(codeOptions)
 
 	claims := jwt.MapClaims{
+		"email":      user.Email,
 		"attempt_id": attemptId.String(),
 		"exp":        attemptExpiry.Unix(),
 	}
