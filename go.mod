@@ -1,6 +1,6 @@
 module github.com/usegranthq/backend
 
-go 1.23.1
+go 1.23.2
 
 require (
 	entgo.io/ent v0.14.1
@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
-	github.com/sibiraj-s/unique-names-generator v0.2.1
+	github.com/sibiraj-s/unique-names-generator v0.3.0
 	golang.org/x/oauth2 v0.23.0
 )
 
