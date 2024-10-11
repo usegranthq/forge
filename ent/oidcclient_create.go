@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type OidcClientCreate struct {
 	config
 	mutation *OidcClientMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetName sets the "name" field.
@@ -208,6 +211,7 @@ func (occ *OidcClientCreate) createSpec() (*OidcClient, *sqlgraph.CreateSpec) {
 		_node = &OidcClient{config: occ.config}
 		_spec = sqlgraph.NewCreateSpec(oidcclient.Table, sqlgraph.NewFieldSpec(oidcclient.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = occ.conflict
 	if id, ok := occ.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -252,11 +256,254 @@ func (occ *OidcClientCreate) createSpec() (*OidcClient, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OidcClient.Create().
+//		SetName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OidcClientUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (occ *OidcClientCreate) OnConflict(opts ...sql.ConflictOption) *OidcClientUpsertOne {
+	occ.conflict = opts
+	return &OidcClientUpsertOne{
+		create: occ,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OidcClient.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (occ *OidcClientCreate) OnConflictColumns(columns ...string) *OidcClientUpsertOne {
+	occ.conflict = append(occ.conflict, sql.ConflictColumns(columns...))
+	return &OidcClientUpsertOne{
+		create: occ,
+	}
+}
+
+type (
+	// OidcClientUpsertOne is the builder for "upsert"-ing
+	//  one OidcClient node.
+	OidcClientUpsertOne struct {
+		create *OidcClientCreate
+	}
+
+	// OidcClientUpsert is the "OnConflict" setter.
+	OidcClientUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetName sets the "name" field.
+func (u *OidcClientUpsert) SetName(v string) *OidcClientUpsert {
+	u.Set(oidcclient.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *OidcClientUpsert) UpdateName() *OidcClientUpsert {
+	u.SetExcluded(oidcclient.FieldName)
+	return u
+}
+
+// SetClientID sets the "client_id" field.
+func (u *OidcClientUpsert) SetClientID(v string) *OidcClientUpsert {
+	u.Set(oidcclient.FieldClientID, v)
+	return u
+}
+
+// UpdateClientID sets the "client_id" field to the value that was provided on create.
+func (u *OidcClientUpsert) UpdateClientID() *OidcClientUpsert {
+	u.SetExcluded(oidcclient.FieldClientID)
+	return u
+}
+
+// SetClientSecret sets the "client_secret" field.
+func (u *OidcClientUpsert) SetClientSecret(v string) *OidcClientUpsert {
+	u.Set(oidcclient.FieldClientSecret, v)
+	return u
+}
+
+// UpdateClientSecret sets the "client_secret" field to the value that was provided on create.
+func (u *OidcClientUpsert) UpdateClientSecret() *OidcClientUpsert {
+	u.SetExcluded(oidcclient.FieldClientSecret)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OidcClientUpsert) SetUpdatedAt(v time.Time) *OidcClientUpsert {
+	u.Set(oidcclient.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OidcClientUpsert) UpdateUpdatedAt() *OidcClientUpsert {
+	u.SetExcluded(oidcclient.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OidcClient.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(oidcclient.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OidcClientUpsertOne) UpdateNewValues() *OidcClientUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(oidcclient.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(oidcclient.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OidcClient.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OidcClientUpsertOne) Ignore() *OidcClientUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OidcClientUpsertOne) DoNothing() *OidcClientUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OidcClientCreate.OnConflict
+// documentation for more info.
+func (u *OidcClientUpsertOne) Update(set func(*OidcClientUpsert)) *OidcClientUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OidcClientUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *OidcClientUpsertOne) SetName(v string) *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *OidcClientUpsertOne) UpdateName() *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetClientID sets the "client_id" field.
+func (u *OidcClientUpsertOne) SetClientID(v string) *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetClientID(v)
+	})
+}
+
+// UpdateClientID sets the "client_id" field to the value that was provided on create.
+func (u *OidcClientUpsertOne) UpdateClientID() *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateClientID()
+	})
+}
+
+// SetClientSecret sets the "client_secret" field.
+func (u *OidcClientUpsertOne) SetClientSecret(v string) *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetClientSecret(v)
+	})
+}
+
+// UpdateClientSecret sets the "client_secret" field to the value that was provided on create.
+func (u *OidcClientUpsertOne) UpdateClientSecret() *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateClientSecret()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OidcClientUpsertOne) SetUpdatedAt(v time.Time) *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OidcClientUpsertOne) UpdateUpdatedAt() *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *OidcClientUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OidcClientCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OidcClientUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OidcClientUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OidcClientUpsertOne.ID is not supported by MySQL driver. Use OidcClientUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OidcClientUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OidcClientCreateBulk is the builder for creating many OidcClient entities in bulk.
 type OidcClientCreateBulk struct {
 	config
 	err      error
 	builders []*OidcClientCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OidcClient entities in the database.
@@ -286,6 +533,7 @@ func (occb *OidcClientCreateBulk) Save(ctx context.Context) ([]*OidcClient, erro
 					_, err = mutators[i+1].Mutate(root, occb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = occb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, occb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -332,6 +580,179 @@ func (occb *OidcClientCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (occb *OidcClientCreateBulk) ExecX(ctx context.Context) {
 	if err := occb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OidcClient.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OidcClientUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (occb *OidcClientCreateBulk) OnConflict(opts ...sql.ConflictOption) *OidcClientUpsertBulk {
+	occb.conflict = opts
+	return &OidcClientUpsertBulk{
+		create: occb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OidcClient.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (occb *OidcClientCreateBulk) OnConflictColumns(columns ...string) *OidcClientUpsertBulk {
+	occb.conflict = append(occb.conflict, sql.ConflictColumns(columns...))
+	return &OidcClientUpsertBulk{
+		create: occb,
+	}
+}
+
+// OidcClientUpsertBulk is the builder for "upsert"-ing
+// a bulk of OidcClient nodes.
+type OidcClientUpsertBulk struct {
+	create *OidcClientCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OidcClient.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(oidcclient.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OidcClientUpsertBulk) UpdateNewValues() *OidcClientUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(oidcclient.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(oidcclient.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OidcClient.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OidcClientUpsertBulk) Ignore() *OidcClientUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OidcClientUpsertBulk) DoNothing() *OidcClientUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OidcClientCreateBulk.OnConflict
+// documentation for more info.
+func (u *OidcClientUpsertBulk) Update(set func(*OidcClientUpsert)) *OidcClientUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OidcClientUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *OidcClientUpsertBulk) SetName(v string) *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *OidcClientUpsertBulk) UpdateName() *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetClientID sets the "client_id" field.
+func (u *OidcClientUpsertBulk) SetClientID(v string) *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetClientID(v)
+	})
+}
+
+// UpdateClientID sets the "client_id" field to the value that was provided on create.
+func (u *OidcClientUpsertBulk) UpdateClientID() *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateClientID()
+	})
+}
+
+// SetClientSecret sets the "client_secret" field.
+func (u *OidcClientUpsertBulk) SetClientSecret(v string) *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetClientSecret(v)
+	})
+}
+
+// UpdateClientSecret sets the "client_secret" field to the value that was provided on create.
+func (u *OidcClientUpsertBulk) UpdateClientSecret() *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateClientSecret()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OidcClientUpsertBulk) SetUpdatedAt(v time.Time) *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OidcClientUpsertBulk) UpdateUpdatedAt() *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *OidcClientUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OidcClientCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OidcClientCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OidcClientUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

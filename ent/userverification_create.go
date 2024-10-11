@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type UserVerificationCreate struct {
 	config
 	mutation *UserVerificationMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetAttemptID sets the "attempt_id" field.
@@ -231,6 +234,7 @@ func (uvc *UserVerificationCreate) createSpec() (*UserVerification, *sqlgraph.Cr
 		_node = &UserVerification{config: uvc.config}
 		_spec = sqlgraph.NewCreateSpec(userverification.Table, sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = uvc.conflict
 	if id, ok := uvc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -279,11 +283,270 @@ func (uvc *UserVerificationCreate) createSpec() (*UserVerification, *sqlgraph.Cr
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.UserVerification.Create().
+//		SetAttemptID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UserVerificationUpsert) {
+//			SetAttemptID(v+v).
+//		}).
+//		Exec(ctx)
+func (uvc *UserVerificationCreate) OnConflict(opts ...sql.ConflictOption) *UserVerificationUpsertOne {
+	uvc.conflict = opts
+	return &UserVerificationUpsertOne{
+		create: uvc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.UserVerification.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (uvc *UserVerificationCreate) OnConflictColumns(columns ...string) *UserVerificationUpsertOne {
+	uvc.conflict = append(uvc.conflict, sql.ConflictColumns(columns...))
+	return &UserVerificationUpsertOne{
+		create: uvc,
+	}
+}
+
+type (
+	// UserVerificationUpsertOne is the builder for "upsert"-ing
+	//  one UserVerification node.
+	UserVerificationUpsertOne struct {
+		create *UserVerificationCreate
+	}
+
+	// UserVerificationUpsert is the "OnConflict" setter.
+	UserVerificationUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetCode sets the "code" field.
+func (u *UserVerificationUpsert) SetCode(v string) *UserVerificationUpsert {
+	u.Set(userverification.FieldCode, v)
+	return u
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *UserVerificationUpsert) UpdateCode() *UserVerificationUpsert {
+	u.SetExcluded(userverification.FieldCode)
+	return u
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *UserVerificationUpsert) SetAttempts(v int) *UserVerificationUpsert {
+	u.Set(userverification.FieldAttempts, v)
+	return u
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *UserVerificationUpsert) UpdateAttempts() *UserVerificationUpsert {
+	u.SetExcluded(userverification.FieldAttempts)
+	return u
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *UserVerificationUpsert) AddAttempts(v int) *UserVerificationUpsert {
+	u.Add(userverification.FieldAttempts, v)
+	return u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *UserVerificationUpsert) SetExpiresAt(v time.Time) *UserVerificationUpsert {
+	u.Set(userverification.FieldExpiresAt, v)
+	return u
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *UserVerificationUpsert) UpdateExpiresAt() *UserVerificationUpsert {
+	u.SetExcluded(userverification.FieldExpiresAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UserVerificationUpsert) SetUpdatedAt(v time.Time) *UserVerificationUpsert {
+	u.Set(userverification.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UserVerificationUpsert) UpdateUpdatedAt() *UserVerificationUpsert {
+	u.SetExcluded(userverification.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.UserVerification.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(userverification.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UserVerificationUpsertOne) UpdateNewValues() *UserVerificationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(userverification.FieldID)
+		}
+		if _, exists := u.create.mutation.AttemptID(); exists {
+			s.SetIgnore(userverification.FieldAttemptID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(userverification.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.UserVerification.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *UserVerificationUpsertOne) Ignore() *UserVerificationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UserVerificationUpsertOne) DoNothing() *UserVerificationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UserVerificationCreate.OnConflict
+// documentation for more info.
+func (u *UserVerificationUpsertOne) Update(set func(*UserVerificationUpsert)) *UserVerificationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UserVerificationUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCode sets the "code" field.
+func (u *UserVerificationUpsertOne) SetCode(v string) *UserVerificationUpsertOne {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *UserVerificationUpsertOne) UpdateCode() *UserVerificationUpsertOne {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *UserVerificationUpsertOne) SetAttempts(v int) *UserVerificationUpsertOne {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.SetAttempts(v)
+	})
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *UserVerificationUpsertOne) AddAttempts(v int) *UserVerificationUpsertOne {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.AddAttempts(v)
+	})
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *UserVerificationUpsertOne) UpdateAttempts() *UserVerificationUpsertOne {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.UpdateAttempts()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *UserVerificationUpsertOne) SetExpiresAt(v time.Time) *UserVerificationUpsertOne {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *UserVerificationUpsertOne) UpdateExpiresAt() *UserVerificationUpsertOne {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UserVerificationUpsertOne) SetUpdatedAt(v time.Time) *UserVerificationUpsertOne {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UserVerificationUpsertOne) UpdateUpdatedAt() *UserVerificationUpsertOne {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *UserVerificationUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UserVerificationCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UserVerificationUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *UserVerificationUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: UserVerificationUpsertOne.ID is not supported by MySQL driver. Use UserVerificationUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *UserVerificationUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // UserVerificationCreateBulk is the builder for creating many UserVerification entities in bulk.
 type UserVerificationCreateBulk struct {
 	config
 	err      error
 	builders []*UserVerificationCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the UserVerification entities in the database.
@@ -313,6 +576,7 @@ func (uvcb *UserVerificationCreateBulk) Save(ctx context.Context) ([]*UserVerifi
 					_, err = mutators[i+1].Mutate(root, uvcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = uvcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, uvcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -359,6 +623,189 @@ func (uvcb *UserVerificationCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (uvcb *UserVerificationCreateBulk) ExecX(ctx context.Context) {
 	if err := uvcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.UserVerification.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UserVerificationUpsert) {
+//			SetAttemptID(v+v).
+//		}).
+//		Exec(ctx)
+func (uvcb *UserVerificationCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserVerificationUpsertBulk {
+	uvcb.conflict = opts
+	return &UserVerificationUpsertBulk{
+		create: uvcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.UserVerification.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (uvcb *UserVerificationCreateBulk) OnConflictColumns(columns ...string) *UserVerificationUpsertBulk {
+	uvcb.conflict = append(uvcb.conflict, sql.ConflictColumns(columns...))
+	return &UserVerificationUpsertBulk{
+		create: uvcb,
+	}
+}
+
+// UserVerificationUpsertBulk is the builder for "upsert"-ing
+// a bulk of UserVerification nodes.
+type UserVerificationUpsertBulk struct {
+	create *UserVerificationCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.UserVerification.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(userverification.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UserVerificationUpsertBulk) UpdateNewValues() *UserVerificationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(userverification.FieldID)
+			}
+			if _, exists := b.mutation.AttemptID(); exists {
+				s.SetIgnore(userverification.FieldAttemptID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(userverification.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.UserVerification.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *UserVerificationUpsertBulk) Ignore() *UserVerificationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UserVerificationUpsertBulk) DoNothing() *UserVerificationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UserVerificationCreateBulk.OnConflict
+// documentation for more info.
+func (u *UserVerificationUpsertBulk) Update(set func(*UserVerificationUpsert)) *UserVerificationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UserVerificationUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCode sets the "code" field.
+func (u *UserVerificationUpsertBulk) SetCode(v string) *UserVerificationUpsertBulk {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *UserVerificationUpsertBulk) UpdateCode() *UserVerificationUpsertBulk {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *UserVerificationUpsertBulk) SetAttempts(v int) *UserVerificationUpsertBulk {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.SetAttempts(v)
+	})
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *UserVerificationUpsertBulk) AddAttempts(v int) *UserVerificationUpsertBulk {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.AddAttempts(v)
+	})
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *UserVerificationUpsertBulk) UpdateAttempts() *UserVerificationUpsertBulk {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.UpdateAttempts()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *UserVerificationUpsertBulk) SetExpiresAt(v time.Time) *UserVerificationUpsertBulk {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *UserVerificationUpsertBulk) UpdateExpiresAt() *UserVerificationUpsertBulk {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UserVerificationUpsertBulk) SetUpdatedAt(v time.Time) *UserVerificationUpsertBulk {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UserVerificationUpsertBulk) UpdateUpdatedAt() *UserVerificationUpsertBulk {
+	return u.Update(func(s *UserVerificationUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *UserVerificationUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UserVerificationCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UserVerificationCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UserVerificationUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

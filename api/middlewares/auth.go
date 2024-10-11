@@ -15,7 +15,7 @@ import (
 // Auth middleware to check if the user is authenticated from jwt cookie
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token, err := c.Cookie("auth")
+		token, err := c.Cookie("_ug_auth")
 		if err != nil {
 			utils.HttpError.Unauthorized(c)
 			return

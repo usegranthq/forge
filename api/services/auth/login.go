@@ -1,6 +1,9 @@
 package auth
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent"
@@ -19,20 +22,25 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	userEmail := strings.ToLower(strings.TrimSpace(req.Email))
+
 	user, err := db.Client.User.
 		Query().
-		Where(user.Email(req.Email)).
+		Where(user.Email(userEmail)).
 		Only(c)
 
 	if err != nil {
 		if ent.IsNotFound(err) {
-			DoSignup(c, req.Email)
+			if err := DoSignup(c, userEmail); err != nil {
+				return
+			}
+			c.JSON(http.StatusCreated, gin.H{})
 			return
-		} else {
-			utils.HttpError.InternalServerError(c)
 		}
+		utils.HttpError.InternalServerError(c)
 		return
 	}
 
 	StartUserVerification(c, user)
+	c.JSON(http.StatusOK, gin.H{})
 }

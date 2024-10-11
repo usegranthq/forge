@@ -8,7 +8,7 @@ build:
 	go build -o bin/main ./cmd/api
 
 generate:
-	go generate ./ent
+	go run -mod=mod entgo.io/ent/cmd/ent generate --feature sql/upsert ./ent/schema
 
 schema:
 	$(call error_if_empty, ${name}, "name")

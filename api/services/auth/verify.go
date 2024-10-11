@@ -7,8 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/sibiraj-s/unique-names-generator"
-	"github.com/usegranthq/backend/config"
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent"
 	"github.com/usegranthq/backend/ent/userverification"
@@ -25,59 +23,6 @@ const (
 	VerificationInvalidCode        = 3
 	VerificationUnknown            = 4
 )
-
-func StartUserVerification(c *gin.Context, user *ent.User) {
-	attemptExpiry := time.Now().Add(30 * time.Minute)
-	attemptId := uuid.New()
-
-	codeOptions := unique.Options{
-		Dictionaries: [][]string{
-			unique.Adjectives,
-			unique.Animals,
-			unique.Colors,
-			unique.Countries,
-			unique.StarWars,
-			unique.Names,
-		},
-		Separator: &[]string{"-"}[0],
-		Length:    3,
-	}
-	code := unique.New(codeOptions)
-
-	claims := jwt.MapClaims{
-		"email":      user.Email,
-		"attempt_id": attemptId.String(),
-		"exp":        attemptExpiry.Unix(),
-	}
-
-	token, err := utils.Jwt.SignToken(claims)
-	if err != nil {
-		utils.HttpError.InternalServerError(c)
-		return
-	}
-
-	_, err = db.Client.UserVerification.Create().
-		SetUserID(user.ID).
-		SetAttemptID(attemptId).
-		SetCode(code).
-		SetExpiresAt(attemptExpiry).
-		Save(c)
-	if err != nil {
-		utils.HttpError.InternalServerError(c)
-		return
-	}
-
-	if err := external.Postman.SendLoginEmail(c, user.Email, code); err != nil {
-		utils.HttpError.InternalServerError(c)
-		return
-	}
-
-	cookieExpiry := int(attemptExpiry.Sub(time.Now()).Seconds())
-	secure := config.Get("NODE_ENV") == "production"
-	c.SetCookie("verify", token, cookieExpiry, "/", "/", secure, true)
-
-	c.JSON(http.StatusOK, gin.H{})
-}
 
 func deleteVerificationCode(c *gin.Context, attemptID uuid.UUID) {
 	_, _ = db.Client.UserVerification.Delete().
@@ -146,7 +91,7 @@ type verifyRequest struct {
 }
 
 func Verify(c *gin.Context) {
-	verifyCookie, err := c.Cookie("verify")
+	verifyCookie, err := c.Cookie("_ug_verify")
 	if err != nil {
 		utils.HttpError.Unauthorized(c)
 		return
@@ -179,30 +124,59 @@ func Verify(c *gin.Context) {
 		}
 	}
 
-	loginExpiry := time.Now().Add(24 * time.Hour)
-	claims := jwt.MapClaims{
-		"sub": user.ID.String(),
-		"exp": loginExpiry.Unix(),
-	}
-
-	token, err := utils.Jwt.SignToken(claims)
-	if err != nil {
-		utils.HttpError.InternalServerError(c)
-		return
-	}
-
-	if _, err := db.Client.UserSession.Create().
-		SetUser(user).
-		SetToken(token).
-		SetExpiresAt(loginExpiry).
-		Save(c); err != nil {
-		utils.HttpError.InternalServerError(c)
-		return
-	}
-
-	cookieExpiry := int(loginExpiry.Sub(time.Now()).Seconds())
-	secure := config.Get("NODE_ENV") == "production"
-	c.SetCookie("auth", token, cookieExpiry, "/", "/", secure, true)
-
+	CreateUserSession(c, user)
 	c.JSON(http.StatusOK, gin.H{})
+}
+
+type verifyOauthRequest struct {
+	Code  string `json:"code" binding:"required"`
+	State string `json:"state" binding:"required"`
+}
+
+func VerifyGithub(c *gin.Context) {
+	var req verifyOauthRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.HttpError.BadRequest(c, err.Error())
+		return
+	}
+
+	if !utils.Hmac.VerifySecureHMACState(external.Github.HmacSecretKey, req.State) {
+		utils.HttpError.BadRequest(c, "Invalid or expired token")
+		return
+	}
+
+	primaryEmail, _, err := external.Github.GetGithubUser(req.Code)
+	if err != nil {
+		utils.HttpError.BadRequest(c, "Unable to fetch user details")
+		return
+	}
+
+	if err := DoOauthSignup(c, primaryEmail); err != nil {
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{})
+}
+
+func VerifyGoogle(c *gin.Context) {
+	var req verifyOauthRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.HttpError.BadRequest(c, err.Error())
+		return
+	}
+
+	if !utils.Hmac.VerifySecureHMACState(external.Google.HmacSecretKey, req.State) {
+		utils.HttpError.BadRequest(c, "Invalid or expired token")
+		return
+	}
+
+	primaryEmail, _, err := external.Google.GetGoogleUser(req.Code)
+	if err != nil {
+		utils.HttpError.BadRequest(c, "Unable to fetch user details")
+		return
+	}
+
+	if err := DoOauthSignup(c, primaryEmail); err != nil {
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{})
 }
