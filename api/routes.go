@@ -30,6 +30,7 @@ func defineProjectRoutes(routerGroup *gin.RouterGroup) {
 func defineUserRoutes(routerGroup *gin.RouterGroup) {
 	routerGroup.GET("/me", users.GetUser)
 	routerGroup.GET("/refresh", users.Refresh)
+	routerGroup.POST("/logout", users.Logout)
 }
 
 func definePublicRoutes(routerGroup *gin.RouterGroup) {
