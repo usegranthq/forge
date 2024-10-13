@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/sibiraj-s/unique-names-generator"
-	"github.com/usegranthq/backend/config"
+	"github.com/usegranthq/backend/constants"
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent"
 	"github.com/usegranthq/backend/ent/user"
@@ -63,18 +63,23 @@ func StartUserVerification(c *gin.Context, user *ent.User) {
 	}
 
 	cookieExpiry := int(attemptExpiry.Sub(time.Now()).Seconds())
-	secure := config.Get("NODE_ENV") == "production"
-	c.SetCookie("_ug_verify", token, cookieExpiry, "/", "/", secure, true)
+	utils.Http.SetCookie(c, constants.VerifyCookie, token, cookieExpiry)
 }
 
 func CreateUserSession(c *gin.Context, user *ent.User) {
-	loginExpiry := time.Now().Add(24 * time.Hour)
-	claims := jwt.MapClaims{
-		"sub": user.ID.String(),
-		"exp": loginExpiry.Unix(),
+	sessionId, err := utils.GenerateRandom(32)
+	if err != nil {
+		utils.HttpError.InternalServerError(c)
+		return
 	}
 
-	token, err := utils.Jwt.SignToken(claims)
+	sessionExpiry := time.Now().Add(24 * time.Hour)
+	claims := jwt.MapClaims{
+		"sub": sessionId,
+		"exp": sessionExpiry.Unix(),
+	}
+
+	sessionCookie, err := utils.Jwt.SignToken(claims)
 	if err != nil {
 		utils.HttpError.InternalServerError(c)
 		return
@@ -82,8 +87,8 @@ func CreateUserSession(c *gin.Context, user *ent.User) {
 
 	if _, err := db.Client.UserSession.Create().
 		SetUser(user).
-		SetToken(token).
-		SetExpiresAt(loginExpiry).
+		SetToken(sessionId).
+		SetExpiresAt(sessionExpiry).
 		Save(c); err != nil {
 		utils.HttpError.InternalServerError(c)
 		return
@@ -95,9 +100,9 @@ func CreateUserSession(c *gin.Context, user *ent.User) {
 		return
 	}
 
-	cookieExpiry := int(loginExpiry.Sub(time.Now()).Seconds())
-	secure := config.Get("NODE_ENV") == "production"
-	c.SetCookie("_ug_auth", token, cookieExpiry, "/", "/", secure, true)
+	cookieExpiry := int(sessionExpiry.Sub(time.Now()).Seconds())
+	utils.Http.SetCookie(c, constants.AuthCookie, sessionCookie, cookieExpiry)
+	utils.Http.DeleteCookie(c, constants.VerifyCookie)
 }
 
 func DoSignup(c *gin.Context, email string) error {

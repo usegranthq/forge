@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/usegranthq/backend/constants"
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent"
 	"github.com/usegranthq/backend/ent/userverification"
@@ -91,7 +92,7 @@ type verifyRequest struct {
 }
 
 func Verify(c *gin.Context) {
-	verifyCookie, err := c.Cookie("_ug_verify")
+	verifyCookie, err := c.Cookie(constants.VerifyCookie)
 	if err != nil {
 		utils.HttpError.Unauthorized(c)
 		return

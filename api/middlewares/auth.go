@@ -5,74 +5,82 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"github.com/usegranthq/backend/config"
+	"github.com/usegranthq/backend/constants"
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent/usersession"
 	"github.com/usegranthq/backend/utils"
 )
 
+func unauthorized(c *gin.Context) {
+	utils.Http.DeleteCookie(c, constants.AuthCookie)
+	utils.HttpError.Unauthorized(c)
+	c.Abort()
+}
+
 // Auth middleware to check if the user is authenticated from jwt cookie
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token, err := c.Cookie("_ug_auth")
+		sessionCookie, err := c.Cookie(constants.AuthCookie)
 		if err != nil {
-			utils.HttpError.Unauthorized(c)
+			unauthorized(c)
 			return
 		}
 
 		// Parse the token
-		claims, err := jwt.ParseWithClaims(token, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+		claims, err := jwt.ParseWithClaims(sessionCookie, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(config.Get("JWT_SECRET")), nil
 		})
 
 		if err != nil {
-			utils.HttpError.Unauthorized(c)
+			unauthorized(c)
 			return
 		}
 
 		// Validate token claims
 		if !claims.Valid {
-			utils.HttpError.Unauthorized(c)
+			unauthorized(c)
 			return
 		}
 
 		// Check token expiration
 		expirationTime, err := claims.Claims.GetExpirationTime()
 		if err != nil || expirationTime.Before(time.Now()) {
-			utils.HttpError.Unauthorized(c)
+			unauthorized(c)
 			return
 		}
 
 		// Get the user ID from the claims
-		userID, err := claims.Claims.GetSubject()
+		sessionID, err := claims.Claims.GetSubject()
 		if err != nil {
-			utils.HttpError.Unauthorized(c)
+			unauthorized(c)
 			return
 		}
 
-		// Get the user from the database
-		user, err := db.Client.User.Get(c, uuid.MustParse(userID))
+		// find the user session
+		session, err := db.Client.UserSession.Query().Where(usersession.Token(sessionID)).Only(c)
 		if err != nil {
-			utils.HttpError.Unauthorized(c)
-			return
-		}
-
-		// Get the session from the database
-		session, err := db.Client.UserSession.Query().Where(usersession.Token(token)).Only(c)
-		if err != nil {
-			utils.HttpError.Unauthorized(c)
+			unauthorized(c)
 			return
 		}
 
 		// Check session expiration
 		if session.ExpiresAt.Before(time.Now()) {
-			utils.HttpError.Unauthorized(c)
+			unauthorized(c)
+			return
+		}
+
+		// get user id from session
+		user, err := session.QueryUser().Only(c)
+		if err != nil {
+			unauthorized(c)
 			return
 		}
 
 		c.Set("user", user)
 		c.Set("userID", user.ID)
+		c.Set("sessionID", sessionID)
+		c.Set("session", session)
 		c.Next()
 	}
 }

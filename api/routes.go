@@ -6,6 +6,7 @@ import (
 	"github.com/usegranthq/backend/api/services/auth"
 	"github.com/usegranthq/backend/api/services/projects"
 	"github.com/usegranthq/backend/api/services/public"
+	"github.com/usegranthq/backend/api/services/users"
 )
 
 func defineProjectRoutes(routerGroup *gin.RouterGroup) {
@@ -24,6 +25,11 @@ func defineProjectRoutes(routerGroup *gin.RouterGroup) {
 	clientIdGroup.Use(middlewares.ValidateClient())
 
 	clientIdGroup.GET("/token", projects.GetToken)
+}
+
+func defineUserRoutes(routerGroup *gin.RouterGroup) {
+	routerGroup.GET("/me", users.GetUser)
+	routerGroup.GET("/refresh", users.Refresh)
 }
 
 func definePublicRoutes(routerGroup *gin.RouterGroup) {
@@ -52,10 +58,11 @@ func SetupRoutes(router *gin.Engine) {
 	apiRouterGroup := router.Group("/api")
 	apiV1RouterGroup := apiRouterGroup.Group("/v1")
 
-	protectedRouterGroup := apiV1RouterGroup.Group("/")
+	protectedRouterGroup := apiV1RouterGroup.Group("/u")
 	protectedRouterGroup.Use(middlewares.Auth())
 
 	definePublicRoutes(defaultRouterGroup)
 	defineAuthRoutes(apiV1RouterGroup)
+	defineUserRoutes(protectedRouterGroup)
 	defineProtectedRoutes(protectedRouterGroup)
 }
