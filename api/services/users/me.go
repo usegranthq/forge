@@ -16,6 +16,7 @@ func GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"email":      meUser.Email,
 		"last_login": meUser.LastLogin,
+		"uid":        meUser.UID,
 	})
 }
 

@@ -15,6 +15,8 @@ const (
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldUID holds the string denoting the uid field in the database.
+	FieldUID = "uid"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
 	// FieldLastLogin holds the string denoting the last_login field in the database.
@@ -59,6 +61,7 @@ const (
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
+	FieldUID,
 	FieldEmail,
 	FieldLastLogin,
 	FieldVerifiedAt,
@@ -77,6 +80,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultUID holds the default value on creation for the "uid" field.
+	DefaultUID func() uuid.UUID
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -95,6 +100,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByUID orders the results by the uid field.
+func ByUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUID, opts...).ToFunc()
 }
 
 // ByEmail orders the results by the email field.

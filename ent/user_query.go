@@ -372,12 +372,12 @@ func (uq *UserQuery) WithUserVerifications(opts ...func(*UserVerificationQuery))
 // Example:
 //
 //	var v []struct {
-//		Email string `json:"email,omitempty"`
+//		UID uuid.UUID `json:"uid,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		GroupBy(user.FieldEmail).
+//		GroupBy(user.FieldUID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
@@ -395,11 +395,11 @@ func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Email string `json:"email,omitempty"`
+//		UID uuid.UUID `json:"uid,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		Select(user.FieldEmail).
+//		Select(user.FieldUID).
 //		Scan(ctx, &v)
 func (uq *UserQuery) Select(fields ...string) *UserSelect {
 	uq.ctx.Fields = append(uq.ctx.Fields, fields...)
