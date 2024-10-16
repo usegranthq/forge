@@ -44,9 +44,11 @@ type UserEdges struct {
 	Projects []*Project `json:"projects,omitempty"`
 	// UserVerifications holds the value of the user_verifications edge.
 	UserVerifications []*UserVerification `json:"user_verifications,omitempty"`
+	// Tokens holds the value of the tokens edge.
+	Tokens []*Token `json:"tokens,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // UserSessionsOrErr returns the UserSessions value or an error if the edge
@@ -74,6 +76,15 @@ func (e UserEdges) UserVerificationsOrErr() ([]*UserVerification, error) {
 		return e.UserVerifications, nil
 	}
 	return nil, &NotLoadedError{edge: "user_verifications"}
+}
+
+// TokensOrErr returns the Tokens value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TokensOrErr() ([]*Token, error) {
+	if e.loadedTypes[3] {
+		return e.Tokens, nil
+	}
+	return nil, &NotLoadedError{edge: "tokens"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -170,6 +181,11 @@ func (u *User) QueryProjects() *ProjectQuery {
 // QueryUserVerifications queries the "user_verifications" edge of the User entity.
 func (u *User) QueryUserVerifications() *UserVerificationQuery {
 	return NewUserClient(u.config).QueryUserVerifications(u)
+}
+
+// QueryTokens queries the "tokens" edge of the User entity.
+func (u *User) QueryTokens() *TokenQuery {
+	return NewUserClient(u.config).QueryTokens(u)
 }
 
 // Update returns a builder for updating this User.

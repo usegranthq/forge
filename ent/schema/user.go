@@ -34,5 +34,6 @@ func (User) Edges() []ent.Edge {
 		edge.To("user_sessions", UserSession.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("projects", Project.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("user_verifications", UserVerification.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("tokens", Token.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

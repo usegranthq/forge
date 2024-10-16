@@ -9,6 +9,7 @@ import (
 	"github.com/usegranthq/backend/ent/oidcclient"
 	"github.com/usegranthq/backend/ent/project"
 	"github.com/usegranthq/backend/ent/schema"
+	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
 	"github.com/usegranthq/backend/ent/userverification"
@@ -66,6 +67,30 @@ func init() {
 	projectDescID := projectFields[0].Descriptor()
 	// project.DefaultID holds the default value on creation for the id field.
 	project.DefaultID = projectDescID.Default.(func() uuid.UUID)
+	tokenFields := schema.Token{}.Fields()
+	_ = tokenFields
+	// tokenDescName is the schema descriptor for name field.
+	tokenDescName := tokenFields[1].Descriptor()
+	// token.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	token.NameValidator = tokenDescName.Validators[0].(func(string) error)
+	// tokenDescToken is the schema descriptor for token field.
+	tokenDescToken := tokenFields[2].Descriptor()
+	// token.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	token.TokenValidator = tokenDescToken.Validators[0].(func(string) error)
+	// tokenDescCreatedAt is the schema descriptor for created_at field.
+	tokenDescCreatedAt := tokenFields[5].Descriptor()
+	// token.DefaultCreatedAt holds the default value on creation for the created_at field.
+	token.DefaultCreatedAt = tokenDescCreatedAt.Default.(func() time.Time)
+	// tokenDescUpdatedAt is the schema descriptor for updated_at field.
+	tokenDescUpdatedAt := tokenFields[6].Descriptor()
+	// token.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	token.DefaultUpdatedAt = tokenDescUpdatedAt.Default.(func() time.Time)
+	// token.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	token.UpdateDefaultUpdatedAt = tokenDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tokenDescID is the schema descriptor for id field.
+	tokenDescID := tokenFields[0].Descriptor()
+	// token.DefaultID holds the default value on creation for the id field.
+	token.DefaultID = tokenDescID.Default.(func() uuid.UUID)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUID is the schema descriptor for uid field.

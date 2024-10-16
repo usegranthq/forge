@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/usegranthq/backend/ent/oidcclient"
 	"github.com/usegranthq/backend/ent/project"
+	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
 	"github.com/usegranthq/backend/ent/userverification"
@@ -79,6 +80,7 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			oidcclient.Table:       oidcclient.ValidColumn,
 			project.Table:          project.ValidColumn,
+			token.Table:            token.ValidColumn,
 			user.Table:             user.ValidColumn,
 			usersession.Table:      usersession.ValidColumn,
 			userverification.Table: userverification.ValidColumn,

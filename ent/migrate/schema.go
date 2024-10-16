@@ -55,6 +55,31 @@ var (
 			},
 		},
 	}
+	// TokensColumns holds the columns for the "tokens" table.
+	TokensColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "token", Type: field.TypeString},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "last_used_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_tokens", Type: field.TypeUUID, Nullable: true},
+	}
+	// TokensTable holds the schema information for the "tokens" table.
+	TokensTable = &schema.Table{
+		Name:       "tokens",
+		Columns:    TokensColumns,
+		PrimaryKey: []*schema.Column{TokensColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tokens_users_tokens",
+				Columns:    []*schema.Column{TokensColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -123,6 +148,7 @@ var (
 	Tables = []*schema.Table{
 		OidcClientsTable,
 		ProjectsTable,
+		TokensTable,
 		UsersTable,
 		UserSessionsTable,
 		UserVerificationsTable,
@@ -132,6 +158,7 @@ var (
 func init() {
 	OidcClientsTable.ForeignKeys[0].RefTable = ProjectsTable
 	ProjectsTable.ForeignKeys[0].RefTable = UsersTable
+	TokensTable.ForeignKeys[0].RefTable = UsersTable
 	UserSessionsTable.ForeignKeys[0].RefTable = UsersTable
 	UserVerificationsTable.ForeignKeys[0].RefTable = UsersTable
 }

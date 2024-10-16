@@ -1,0 +1,2 @@
+-- Create "tokens" table
+CREATE TABLE "tokens" ("id" uuid NOT NULL, "name" character varying NOT NULL, "token" character varying NOT NULL, "expires_at" timestamptz NULL, "last_used_at" timestamptz NULL, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "user_tokens" uuid NULL, PRIMARY KEY ("id"), CONSTRAINT "tokens_users_tokens" FOREIGN KEY ("user_tokens") REFERENCES "users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE);

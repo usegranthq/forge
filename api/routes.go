@@ -6,6 +6,7 @@ import (
 	"github.com/usegranthq/backend/api/services/auth"
 	"github.com/usegranthq/backend/api/services/projects"
 	"github.com/usegranthq/backend/api/services/public"
+	"github.com/usegranthq/backend/api/services/settings"
 	"github.com/usegranthq/backend/api/services/users"
 )
 
@@ -34,6 +35,14 @@ func defineUserRoutes(routerGroup *gin.RouterGroup) {
 	routerGroup.DELETE("/", users.DeleteUser)
 }
 
+func defineSettingsRoutes(routerGroup *gin.RouterGroup) {
+	settingsRouterGroup := routerGroup.Group("/settings")
+
+	settingsRouterGroup.GET("/tokens", settings.ListTokens)
+	settingsRouterGroup.POST("/tokens", settings.CreateToken)
+	settingsRouterGroup.DELETE("/tokens/:tokenID", settings.DeleteToken)
+}
+
 func definePublicRoutes(routerGroup *gin.RouterGroup) {
 	routerGroup.GET("/", public.Root)
 	routerGroup.GET("/health", public.HealthCheck)
@@ -51,7 +60,9 @@ func defineAuthRoutes(routerGroup *gin.RouterGroup) {
 }
 
 func defineProtectedRoutes(routerGroup *gin.RouterGroup) {
+	defineUserRoutes(routerGroup)
 	defineProjectRoutes(routerGroup)
+	defineSettingsRoutes(routerGroup)
 }
 
 func SetupRoutes(router *gin.Engine) {
@@ -65,6 +76,5 @@ func SetupRoutes(router *gin.Engine) {
 
 	definePublicRoutes(defaultRouterGroup)
 	defineAuthRoutes(apiV1RouterGroup)
-	defineUserRoutes(protectedRouterGroup)
 	defineProtectedRoutes(protectedRouterGroup)
 }

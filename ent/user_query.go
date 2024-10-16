@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/usegranthq/backend/ent/predicate"
 	"github.com/usegranthq/backend/ent/project"
+	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
 	"github.com/usegranthq/backend/ent/userverification"
@@ -30,6 +31,7 @@ type UserQuery struct {
 	withUserSessions      *UserSessionQuery
 	withProjects          *ProjectQuery
 	withUserVerifications *UserVerificationQuery
+	withTokens            *TokenQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -125,6 +127,28 @@ func (uq *UserQuery) QueryUserVerifications() *UserVerificationQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(userverification.Table, userverification.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.UserVerificationsTable, user.UserVerificationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTokens chains the current query on the "tokens" edge.
+func (uq *UserQuery) QueryTokens() *TokenQuery {
+	query := (&TokenClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(token.Table, token.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TokensTable, user.TokensColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -327,6 +351,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withUserSessions:      uq.withUserSessions.Clone(),
 		withProjects:          uq.withProjects.Clone(),
 		withUserVerifications: uq.withUserVerifications.Clone(),
+		withTokens:            uq.withTokens.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -363,6 +388,17 @@ func (uq *UserQuery) WithUserVerifications(opts ...func(*UserVerificationQuery))
 		opt(query)
 	}
 	uq.withUserVerifications = query
+	return uq
+}
+
+// WithTokens tells the query-builder to eager-load the nodes that are connected to
+// the "tokens" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithTokens(opts ...func(*TokenQuery)) *UserQuery {
+	query := (&TokenClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withTokens = query
 	return uq
 }
 
@@ -444,10 +480,11 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			uq.withUserSessions != nil,
 			uq.withProjects != nil,
 			uq.withUserVerifications != nil,
+			uq.withTokens != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -486,6 +523,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadUserVerifications(ctx, query, nodes,
 			func(n *User) { n.Edges.UserVerifications = []*UserVerification{} },
 			func(n *User, e *UserVerification) { n.Edges.UserVerifications = append(n.Edges.UserVerifications, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withTokens; query != nil {
+		if err := uq.loadTokens(ctx, query, nodes,
+			func(n *User) { n.Edges.Tokens = []*Token{} },
+			func(n *User, e *Token) { n.Edges.Tokens = append(n.Edges.Tokens, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -580,6 +624,37 @@ func (uq *UserQuery) loadUserVerifications(ctx context.Context, query *UserVerif
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_user_verifications" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadTokens(ctx context.Context, query *TokenQuery, nodes []*User, init func(*User), assign func(*User, *Token)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.TokensColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_tokens
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_tokens" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_tokens" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
