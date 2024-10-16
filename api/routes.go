@@ -31,6 +31,7 @@ func defineUserRoutes(routerGroup *gin.RouterGroup) {
 	routerGroup.GET("/me", users.GetUser)
 	routerGroup.GET("/refresh", users.Refresh)
 	routerGroup.POST("/logout", users.Logout)
+	routerGroup.DELETE("/", users.DeleteUser)
 }
 
 func definePublicRoutes(routerGroup *gin.RouterGroup) {
