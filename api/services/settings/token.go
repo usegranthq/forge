@@ -16,8 +16,8 @@ import (
 // expires_at is optional, if not provided, the token will never expire
 // values can be "never", "1", "7", "30", "60", "90", "180", "360", "0"
 type createTokenRequest struct {
-	Name      string `json:"name" binding:"required"`
-	ExpiresAt int    `json:"expires_at"`
+	Name        string `json:"name" binding:"required"`
+	ExpiresDays int    `json:"expiry_days"`
 }
 
 func CreateToken(c *gin.Context) {
@@ -30,8 +30,8 @@ func CreateToken(c *gin.Context) {
 	}
 
 	var expiresAt *time.Time
-	if req.ExpiresAt != 0 {
-		parsedTime := time.Now().AddDate(0, 0, req.ExpiresAt)
+	if req.ExpiresDays != 0 {
+		parsedTime := time.Now().AddDate(0, 0, req.ExpiresDays)
 		expiresAt = &parsedTime
 	}
 
@@ -68,8 +68,8 @@ func CreateToken(c *gin.Context) {
 type listTokensResponse struct {
 	Name       string    `json:"name"`
 	ID         uuid.UUID `json:"id"`
-	ExpiresAt  time.Time `json:"expires_at"`
-	LastUsedAt time.Time `json:"last_used_at,omitempty"`
+	ExpiresAt  *string   `json:"expires_at"`
+	LastUsedAt *string   `json:"last_used_at"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }
@@ -79,6 +79,7 @@ func ListTokens(c *gin.Context) {
 
 	tokens, err := db.Client.Token.Query().
 		Where(token.HasUserWith(user.ID(currentUser.ID))).
+		Order(ent.Desc(token.FieldCreatedAt)).
 		All(c)
 
 	if err != nil {
@@ -89,12 +90,19 @@ func ListTokens(c *gin.Context) {
 	response := make([]listTokensResponse, len(tokens))
 	for i, token := range tokens {
 		response[i] = listTokensResponse{
-			Name:       token.Name,
-			ID:         token.ID,
-			ExpiresAt:  token.ExpiresAt,
-			LastUsedAt: token.LastUsedAt,
-			CreatedAt:  token.CreatedAt,
-			UpdatedAt:  token.UpdatedAt,
+			Name:      token.Name,
+			ID:        token.ID,
+			CreatedAt: token.CreatedAt,
+			UpdatedAt: token.UpdatedAt,
+		}
+
+		if !token.ExpiresAt.IsZero() {
+			expiresAt := token.ExpiresAt.String()
+			response[i].ExpiresAt = &expiresAt
+		}
+		if !token.LastUsedAt.IsZero() {
+			lastUsedAt := token.LastUsedAt.String()
+			response[i].LastUsedAt = &lastUsedAt
 		}
 	}
 
