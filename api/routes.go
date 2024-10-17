@@ -12,15 +12,15 @@ import (
 
 func defineProjectRoutes(routerGroup *gin.RouterGroup) {
 	projectGroup := routerGroup.Group("/projects")
-	projectGroup.POST("/", projects.CreateProject)
+	projectGroup.POST("", projects.CreateProject)
 
 	projectIdGroup := projectGroup.Group("/:projectID")
 	projectIdGroup.Use(middlewares.ValidateProject())
 
-	projectIdGroup.DELETE("/", projects.DeleteProject)
+	projectIdGroup.DELETE("", projects.DeleteProject)
 
 	clientGroup := projectIdGroup.Group("/clients")
-	clientGroup.POST("/", projects.CreateOidcClient)
+	clientGroup.POST("", projects.CreateOidcClient)
 
 	clientIdGroup := clientGroup.Group("/:clientID")
 	clientIdGroup.Use(middlewares.ValidateClient())
