@@ -21,9 +21,13 @@ type listSessionsResponse struct {
 
 func ListSessions(c *gin.Context) {
 	currentUser := c.MustGet("user").(*ent.User)
+	currentSessionID := c.MustGet("sessionID").(uuid.UUID)
 
 	sessions, err := db.Client.UserSession.Query().
-		Where(usersession.HasUserWith(user.ID(currentUser.ID))).
+		Where(
+			usersession.HasUserWith(user.ID(currentUser.ID)),
+			usersession.Not(usersession.ID(currentSessionID)),
+		).
 		Order(ent.Desc(usersession.FieldCreatedAt)).
 		All(c)
 	if err != nil {

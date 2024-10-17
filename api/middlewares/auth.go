@@ -79,7 +79,7 @@ func Auth() gin.HandlerFunc {
 
 		c.Set("user", user)
 		c.Set("userID", user.ID)
-		c.Set("sessionID", sessionID)
+		c.Set("sessionID", session.ID)
 		c.Set("session", session)
 		c.Next()
 	}
