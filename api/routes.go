@@ -41,6 +41,10 @@ func defineSettingsRoutes(routerGroup *gin.RouterGroup) {
 	settingsRouterGroup.GET("/tokens", settings.ListTokens)
 	settingsRouterGroup.POST("/tokens", settings.CreateToken)
 	settingsRouterGroup.DELETE("/tokens/:tokenID", settings.DeleteToken)
+
+	settingsRouterGroup.GET("/sessions", settings.ListSessions)
+	settingsRouterGroup.DELETE("/sessions/:sessionID", settings.DeleteSession)
+	settingsRouterGroup.DELETE("/sessions", settings.DeleteAllOtherSessions)
 }
 
 func definePublicRoutes(routerGroup *gin.RouterGroup) {
