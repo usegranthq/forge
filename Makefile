@@ -2,7 +2,7 @@
 error_if_empty = $(if $(strip $1),,echo "error: required: $2 is empty" && exit 1)
 
 dev:
-	air -c .air.toml
+	docker compose up --build
 
 build:
 	go build -o bin/main ./cmd/api

@@ -13,6 +13,7 @@ import (
 func defineProjectRoutes(routerGroup *gin.RouterGroup) {
 	projectGroup := routerGroup.Group("/projects")
 	projectGroup.POST("", projects.CreateProject)
+	projectGroup.GET("", projects.ListProjects)
 
 	projectIdGroup := projectGroup.Group("/:projectID")
 	projectIdGroup.Use(middlewares.ValidateProject())

@@ -35,7 +35,7 @@ RUN mkdir -p /app/tmp
 EXPOSE $PORT
 
 # command to run Air and hot reload changes
-CMD ["make", "dev"]
+CMD ["air", "-c", ".air.toml"]
 
 ### Build stage
 FROM base AS build
