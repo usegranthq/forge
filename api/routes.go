@@ -19,6 +19,7 @@ func defineProjectRoutes(routerGroup *gin.RouterGroup) {
 	projectIdGroup.Use(middlewares.ValidateProject())
 
 	projectIdGroup.DELETE("", projects.DeleteProject)
+	projectIdGroup.PUT("", projects.UpdateProject)
 
 	clientGroup := projectIdGroup.Group("/clients")
 	clientGroup.POST("", projects.CreateOidcClient)

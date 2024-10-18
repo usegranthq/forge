@@ -36,8 +36,8 @@ func CreateProject(c *gin.Context) {
 	userID := c.MustGet("userID").(uuid.UUID)
 
 	type createProjectRequest struct {
-		Name        string `json:"name" binding:"required"`
-		Description string `json:"description" binding:"required"`
+		Name        string `json:"name" binding:"required,min=3,max=32"`
+		Description string `json:"description" binding:"required,min=3,max=100"`
 	}
 
 	var req createProjectRequest
@@ -121,6 +121,35 @@ func GetProject(c *gin.Context) {
 		} else {
 			utils.HttpError.InternalServerError(c)
 		}
+		return
+	}
+
+	c.JSON(http.StatusOK, toProjectResponse(project))
+}
+
+func UpdateProject(c *gin.Context) {
+	projectID := c.MustGet("projectID").(uuid.UUID)
+	currentUser := c.MustGet("user").(*ent.User)
+
+	type updateProjectRequest struct {
+		Name        string `json:"name" binding:"required,min=3,max=32"`
+		Description string `json:"description" binding:"required,min=3,max=100"`
+	}
+
+	var req updateProjectRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.HttpError.BadRequest(c, err.Error())
+		return
+	}
+
+	project, err := db.Client.Project.
+		UpdateOneID(projectID).
+		Where(project.HasUserWith(user.ID(currentUser.ID))).
+		SetName(req.Name).
+		SetDescription(req.Description).
+		Save(c)
+	if err != nil {
+		utils.HttpError.InternalServerError(c)
 		return
 	}
 
