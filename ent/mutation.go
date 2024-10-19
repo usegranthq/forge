@@ -660,6 +660,7 @@ type ProjectMutation struct {
 	typ                 string
 	id                  *uuid.UUID
 	name                *string
+	url_id              *string
 	description         *string
 	created_at          *time.Time
 	updated_at          *time.Time
@@ -812,6 +813,42 @@ func (m *ProjectMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *ProjectMutation) ResetName() {
 	m.name = nil
+}
+
+// SetURLID sets the "url_id" field.
+func (m *ProjectMutation) SetURLID(s string) {
+	m.url_id = &s
+}
+
+// URLID returns the value of the "url_id" field in the mutation.
+func (m *ProjectMutation) URLID() (r string, exists bool) {
+	v := m.url_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldURLID returns the old "url_id" field's value of the Project entity.
+// If the Project object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProjectMutation) OldURLID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldURLID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldURLID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldURLID: %w", err)
+	}
+	return oldValue.URLID, nil
+}
+
+// ResetURLID resets all changes to the "url_id" field.
+func (m *ProjectMutation) ResetURLID() {
+	m.url_id = nil
 }
 
 // SetDescription sets the "description" field.
@@ -1062,9 +1099,12 @@ func (m *ProjectMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProjectMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, project.FieldName)
+	}
+	if m.url_id != nil {
+		fields = append(fields, project.FieldURLID)
 	}
 	if m.description != nil {
 		fields = append(fields, project.FieldDescription)
@@ -1085,6 +1125,8 @@ func (m *ProjectMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case project.FieldName:
 		return m.Name()
+	case project.FieldURLID:
+		return m.URLID()
 	case project.FieldDescription:
 		return m.Description()
 	case project.FieldCreatedAt:
@@ -1102,6 +1144,8 @@ func (m *ProjectMutation) OldField(ctx context.Context, name string) (ent.Value,
 	switch name {
 	case project.FieldName:
 		return m.OldName(ctx)
+	case project.FieldURLID:
+		return m.OldURLID(ctx)
 	case project.FieldDescription:
 		return m.OldDescription(ctx)
 	case project.FieldCreatedAt:
@@ -1123,6 +1167,13 @@ func (m *ProjectMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case project.FieldURLID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetURLID(v)
 		return nil
 	case project.FieldDescription:
 		v, ok := value.(string)
@@ -1205,6 +1256,9 @@ func (m *ProjectMutation) ResetField(name string) error {
 	switch name {
 	case project.FieldName:
 		m.ResetName()
+		return nil
+	case project.FieldURLID:
+		m.ResetURLID()
 		return nil
 	case project.FieldDescription:
 		m.ResetDescription()

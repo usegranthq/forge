@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"entgo.io/ent/dialect"
+	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/usegranthq/backend/config"
 	"github.com/usegranthq/backend/ent"
@@ -61,4 +62,12 @@ func WithTx(ctx context.Context, client *ent.Client, fn func(tx *ent.Tx) error) 
 		return fmt.Errorf("committing transaction: %w", err)
 	}
 	return nil
+}
+
+func GinHandlerWithTx(handler func(c *gin.Context, tx *ent.Tx) error) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		WithTx(c.Request.Context(), Client, func(tx *ent.Tx) error {
+			return handler(c, tx)
+		})
+	}
 }

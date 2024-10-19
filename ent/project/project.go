@@ -17,6 +17,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldURLID holds the string denoting the url_id field in the database.
+	FieldURLID = "url_id"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -49,6 +51,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldURLID,
 	FieldDescription,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -78,6 +81,8 @@ func ValidColumn(column string) bool {
 var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// URLIDValidator is a validator for the "url_id" field. It is called by the builders before save.
+	URLIDValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -99,6 +104,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByURLID orders the results by the url_id field.
+func ByURLID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldURLID, opts...).ToFunc()
 }
 
 // ByDescription orders the results by the description field.

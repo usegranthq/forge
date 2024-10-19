@@ -32,6 +32,12 @@ func (pc *ProjectCreate) SetName(s string) *ProjectCreate {
 	return pc
 }
 
+// SetURLID sets the "url_id" field.
+func (pc *ProjectCreate) SetURLID(s string) *ProjectCreate {
+	pc.mutation.SetURLID(s)
+	return pc
+}
+
 // SetDescription sets the "description" field.
 func (pc *ProjectCreate) SetDescription(s string) *ProjectCreate {
 	pc.mutation.SetDescription(s)
@@ -173,6 +179,14 @@ func (pc *ProjectCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Project.name": %w`, err)}
 		}
 	}
+	if _, ok := pc.mutation.URLID(); !ok {
+		return &ValidationError{Name: "url_id", err: errors.New(`ent: missing required field "Project.url_id"`)}
+	}
+	if v, ok := pc.mutation.URLID(); ok {
+		if err := project.URLIDValidator(v); err != nil {
+			return &ValidationError{Name: "url_id", err: fmt.Errorf(`ent: validator failed for field "Project.url_id": %w`, err)}
+		}
+	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Project.created_at"`)}
 	}
@@ -221,6 +235,10 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.Name(); ok {
 		_spec.SetField(project.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := pc.mutation.URLID(); ok {
+		_spec.SetField(project.FieldURLID, field.TypeString, value)
+		_node.URLID = value
 	}
 	if value, ok := pc.mutation.Description(); ok {
 		_spec.SetField(project.FieldDescription, field.TypeString, value)
@@ -331,6 +349,18 @@ func (u *ProjectUpsert) UpdateName() *ProjectUpsert {
 	return u
 }
 
+// SetURLID sets the "url_id" field.
+func (u *ProjectUpsert) SetURLID(v string) *ProjectUpsert {
+	u.Set(project.FieldURLID, v)
+	return u
+}
+
+// UpdateURLID sets the "url_id" field to the value that was provided on create.
+func (u *ProjectUpsert) UpdateURLID() *ProjectUpsert {
+	u.SetExcluded(project.FieldURLID)
+	return u
+}
+
 // SetDescription sets the "description" field.
 func (u *ProjectUpsert) SetDescription(v string) *ProjectUpsert {
 	u.Set(project.FieldDescription, v)
@@ -423,6 +453,20 @@ func (u *ProjectUpsertOne) SetName(v string) *ProjectUpsertOne {
 func (u *ProjectUpsertOne) UpdateName() *ProjectUpsertOne {
 	return u.Update(func(s *ProjectUpsert) {
 		s.UpdateName()
+	})
+}
+
+// SetURLID sets the "url_id" field.
+func (u *ProjectUpsertOne) SetURLID(v string) *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetURLID(v)
+	})
+}
+
+// UpdateURLID sets the "url_id" field to the value that was provided on create.
+func (u *ProjectUpsertOne) UpdateURLID() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateURLID()
 	})
 }
 
@@ -690,6 +734,20 @@ func (u *ProjectUpsertBulk) SetName(v string) *ProjectUpsertBulk {
 func (u *ProjectUpsertBulk) UpdateName() *ProjectUpsertBulk {
 	return u.Update(func(s *ProjectUpsert) {
 		s.UpdateName()
+	})
+}
+
+// SetURLID sets the "url_id" field.
+func (u *ProjectUpsertBulk) SetURLID(v string) *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetURLID(v)
+	})
+}
+
+// UpdateURLID sets the "url_id" field to the value that was provided on create.
+func (u *ProjectUpsertBulk) UpdateURLID() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateURLID()
 	})
 }
 

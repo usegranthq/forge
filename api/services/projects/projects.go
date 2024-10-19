@@ -1,11 +1,16 @@
 package projects
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/gosimple/slug"
+	"github.com/speps/go-hashids/v2"
+	"github.com/usegranthq/backend/config"
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent"
 	"github.com/usegranthq/backend/ent/project"
@@ -32,7 +37,11 @@ func toProjectResponse(project *ent.Project) projectResponse {
 	}
 }
 
-func CreateProject(c *gin.Context) {
+var CreateProject = db.GinHandlerWithTx(createProjectHandler)
+var DeleteProject = db.GinHandlerWithTx(deleteProjectHandler)
+var UpdateProject = db.GinHandlerWithTx(updateProjectHandler)
+
+func createProjectHandler(c *gin.Context, tx *ent.Tx) error {
 	userID := c.MustGet("userID").(uuid.UUID)
 
 	type createProjectRequest struct {
@@ -43,47 +52,107 @@ func CreateProject(c *gin.Context) {
 	var req createProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.HttpError.BadRequest(c, err.Error())
-		return
+		return err
 	}
 
-	project, err := db.Client.Project.Create().
+	hd := hashids.NewData()
+	hd.Salt = config.Get("PROJECT_URL_HASH_SALT")
+	hd.MinLength = 6
+	hash, _ := hashids.NewWithData(hd)
+	urlUniq, _ := hash.Encode([]int{int(time.Now().Unix())})
+	urlID := slug.Make(req.Name) + "-" + urlUniq
+
+	project, err := tx.Project.Create().
 		SetUserID(userID).
 		SetName(req.Name).
 		SetDescription(req.Description).
+		SetURLID(urlID).
 		Save(c)
 
 	if err != nil {
 		utils.HttpError.InternalServerError(c)
-		return
+		return err
 	}
+
+	domain := config.Get("PROJECT_OIDC_DOMAIN")
+	domain = strings.Replace(domain, "<PROJECT_URL_ID>", urlID, 1)
 
 	// register project in oidc provider
 	payload := map[string]interface{}{
 		"id":     project.ID.String(),
-		"domain": "",
+		"domain": domain,
 	}
 	err = external.Oidc.Request("POST", "/projects", payload, nil)
 	if err != nil {
 		utils.HttpError.InternalServerError(c)
-		return
+		fmt.Println("some error", err)
+		return err
 	}
 
 	c.JSON(http.StatusCreated, toProjectResponse(project))
+	return nil
 }
 
-func DeleteProject(c *gin.Context) {
+func deleteProjectHandler(c *gin.Context, tx *ent.Tx) error {
 	projectID := c.MustGet("projectID").(uuid.UUID)
 	currentUser := c.MustGet("user").(*ent.User)
 
-	err := db.Client.Project.DeleteOneID(projectID).
+	err := tx.Project.DeleteOneID(projectID).
 		Where(project.HasUserWith(user.ID(currentUser.ID))).
 		Exec(c)
 	if err != nil {
 		utils.HttpError.InternalServerError(c)
-		return
+		return err
+	}
+
+	err = external.Oidc.Request("DELETE", "/projects/"+projectID.String(), nil, nil)
+	if err != nil {
+		utils.HttpError.InternalServerError(c)
+		return err
 	}
 
 	c.JSON(http.StatusNoContent, gin.H{})
+	return nil
+}
+
+func updateProjectHandler(c *gin.Context, tx *ent.Tx) error {
+	projectID := c.MustGet("projectID").(uuid.UUID)
+	currentUser := c.MustGet("user").(*ent.User)
+
+	type updateProjectRequest struct {
+		Name        string `json:"name" binding:"required,min=3,max=32"`
+		Description string `json:"description" binding:"required,min=3,max=100"`
+	}
+
+	var req updateProjectRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.HttpError.BadRequest(c, err.Error())
+		return err
+	}
+
+	project, err := tx.Project.
+		UpdateOneID(projectID).
+		Where(project.HasUserWith(user.ID(currentUser.ID))).
+		SetName(req.Name).
+		SetDescription(req.Description).
+		Save(c)
+	if err != nil {
+		utils.HttpError.InternalServerError(c)
+		return err
+	}
+
+	payload := map[string]interface{}{
+		"id":     project.ID.String(),
+		"domain": project,
+	}
+	err = external.Oidc.Request("PUT", "/projects/"+projectID.String(), payload, nil)
+	if err != nil {
+		utils.HttpError.InternalServerError(c)
+		return err
+	}
+
+	c.JSON(http.StatusOK, toProjectResponse(project))
+	return nil
 }
 
 func ListProjects(c *gin.Context) {
@@ -121,35 +190,6 @@ func GetProject(c *gin.Context) {
 		} else {
 			utils.HttpError.InternalServerError(c)
 		}
-		return
-	}
-
-	c.JSON(http.StatusOK, toProjectResponse(project))
-}
-
-func UpdateProject(c *gin.Context) {
-	projectID := c.MustGet("projectID").(uuid.UUID)
-	currentUser := c.MustGet("user").(*ent.User)
-
-	type updateProjectRequest struct {
-		Name        string `json:"name" binding:"required,min=3,max=32"`
-		Description string `json:"description" binding:"required,min=3,max=100"`
-	}
-
-	var req updateProjectRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.HttpError.BadRequest(c, err.Error())
-		return
-	}
-
-	project, err := db.Client.Project.
-		UpdateOneID(projectID).
-		Where(project.HasUserWith(user.ID(currentUser.ID))).
-		SetName(req.Name).
-		SetDescription(req.Description).
-		Save(c)
-	if err != nil {
-		utils.HttpError.InternalServerError(c)
 		return
 	}
 

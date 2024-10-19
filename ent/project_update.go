@@ -45,6 +45,20 @@ func (pu *ProjectUpdate) SetNillableName(s *string) *ProjectUpdate {
 	return pu
 }
 
+// SetURLID sets the "url_id" field.
+func (pu *ProjectUpdate) SetURLID(s string) *ProjectUpdate {
+	pu.mutation.SetURLID(s)
+	return pu
+}
+
+// SetNillableURLID sets the "url_id" field if the given value is not nil.
+func (pu *ProjectUpdate) SetNillableURLID(s *string) *ProjectUpdate {
+	if s != nil {
+		pu.SetURLID(*s)
+	}
+	return pu
+}
+
 // SetDescription sets the "description" field.
 func (pu *ProjectUpdate) SetDescription(s string) *ProjectUpdate {
 	pu.mutation.SetDescription(s)
@@ -172,6 +186,11 @@ func (pu *ProjectUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Project.name": %w`, err)}
 		}
 	}
+	if v, ok := pu.mutation.URLID(); ok {
+		if err := project.URLIDValidator(v); err != nil {
+			return &ValidationError{Name: "url_id", err: fmt.Errorf(`ent: validator failed for field "Project.url_id": %w`, err)}
+		}
+	}
 	if pu.mutation.UserCleared() && len(pu.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Project.user"`)
 	}
@@ -192,6 +211,9 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.Name(); ok {
 		_spec.SetField(project.FieldName, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.URLID(); ok {
+		_spec.SetField(project.FieldURLID, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.Description(); ok {
 		_spec.SetField(project.FieldDescription, field.TypeString, value)
@@ -306,6 +328,20 @@ func (puo *ProjectUpdateOne) SetName(s string) *ProjectUpdateOne {
 func (puo *ProjectUpdateOne) SetNillableName(s *string) *ProjectUpdateOne {
 	if s != nil {
 		puo.SetName(*s)
+	}
+	return puo
+}
+
+// SetURLID sets the "url_id" field.
+func (puo *ProjectUpdateOne) SetURLID(s string) *ProjectUpdateOne {
+	puo.mutation.SetURLID(s)
+	return puo
+}
+
+// SetNillableURLID sets the "url_id" field if the given value is not nil.
+func (puo *ProjectUpdateOne) SetNillableURLID(s *string) *ProjectUpdateOne {
+	if s != nil {
+		puo.SetURLID(*s)
 	}
 	return puo
 }
@@ -450,6 +486,11 @@ func (puo *ProjectUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Project.name": %w`, err)}
 		}
 	}
+	if v, ok := puo.mutation.URLID(); ok {
+		if err := project.URLIDValidator(v); err != nil {
+			return &ValidationError{Name: "url_id", err: fmt.Errorf(`ent: validator failed for field "Project.url_id": %w`, err)}
+		}
+	}
 	if puo.mutation.UserCleared() && len(puo.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Project.user"`)
 	}
@@ -487,6 +528,9 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 	}
 	if value, ok := puo.mutation.Name(); ok {
 		_spec.SetField(project.FieldName, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.URLID(); ok {
+		_spec.SetField(project.FieldURLID, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.Description(); ok {
 		_spec.SetField(project.FieldDescription, field.TypeString, value)

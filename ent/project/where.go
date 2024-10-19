@@ -61,6 +61,11 @@ func Name(v string) predicate.Project {
 	return predicate.Project(sql.FieldEQ(FieldName, v))
 }
 
+// URLID applies equality check predicate on the "url_id" field. It's identical to URLIDEQ.
+func URLID(v string) predicate.Project {
+	return predicate.Project(sql.FieldEQ(FieldURLID, v))
+}
+
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.Project {
 	return predicate.Project(sql.FieldEQ(FieldDescription, v))
@@ -139,6 +144,71 @@ func NameEqualFold(v string) predicate.Project {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Project {
 	return predicate.Project(sql.FieldContainsFold(FieldName, v))
+}
+
+// URLIDEQ applies the EQ predicate on the "url_id" field.
+func URLIDEQ(v string) predicate.Project {
+	return predicate.Project(sql.FieldEQ(FieldURLID, v))
+}
+
+// URLIDNEQ applies the NEQ predicate on the "url_id" field.
+func URLIDNEQ(v string) predicate.Project {
+	return predicate.Project(sql.FieldNEQ(FieldURLID, v))
+}
+
+// URLIDIn applies the In predicate on the "url_id" field.
+func URLIDIn(vs ...string) predicate.Project {
+	return predicate.Project(sql.FieldIn(FieldURLID, vs...))
+}
+
+// URLIDNotIn applies the NotIn predicate on the "url_id" field.
+func URLIDNotIn(vs ...string) predicate.Project {
+	return predicate.Project(sql.FieldNotIn(FieldURLID, vs...))
+}
+
+// URLIDGT applies the GT predicate on the "url_id" field.
+func URLIDGT(v string) predicate.Project {
+	return predicate.Project(sql.FieldGT(FieldURLID, v))
+}
+
+// URLIDGTE applies the GTE predicate on the "url_id" field.
+func URLIDGTE(v string) predicate.Project {
+	return predicate.Project(sql.FieldGTE(FieldURLID, v))
+}
+
+// URLIDLT applies the LT predicate on the "url_id" field.
+func URLIDLT(v string) predicate.Project {
+	return predicate.Project(sql.FieldLT(FieldURLID, v))
+}
+
+// URLIDLTE applies the LTE predicate on the "url_id" field.
+func URLIDLTE(v string) predicate.Project {
+	return predicate.Project(sql.FieldLTE(FieldURLID, v))
+}
+
+// URLIDContains applies the Contains predicate on the "url_id" field.
+func URLIDContains(v string) predicate.Project {
+	return predicate.Project(sql.FieldContains(FieldURLID, v))
+}
+
+// URLIDHasPrefix applies the HasPrefix predicate on the "url_id" field.
+func URLIDHasPrefix(v string) predicate.Project {
+	return predicate.Project(sql.FieldHasPrefix(FieldURLID, v))
+}
+
+// URLIDHasSuffix applies the HasSuffix predicate on the "url_id" field.
+func URLIDHasSuffix(v string) predicate.Project {
+	return predicate.Project(sql.FieldHasSuffix(FieldURLID, v))
+}
+
+// URLIDEqualFold applies the EqualFold predicate on the "url_id" field.
+func URLIDEqualFold(v string) predicate.Project {
+	return predicate.Project(sql.FieldEqualFold(FieldURLID, v))
+}
+
+// URLIDContainsFold applies the ContainsFold predicate on the "url_id" field.
+func URLIDContainsFold(v string) predicate.Project {
+	return predicate.Project(sql.FieldContainsFold(FieldURLID, v))
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.
