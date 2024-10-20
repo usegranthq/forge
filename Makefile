@@ -2,6 +2,7 @@
 error_if_empty = $(if $(strip $1),,echo "error: required: $2 is empty" && exit 1)
 
 ifeq ($(strip $(EC2_CERT)),)
+	EC2_CERT_OPT =
 else
 	EC2_CERT_OPT = -i ${EC2_CERT}
 endif
