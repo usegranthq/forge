@@ -8,13 +8,14 @@ else
 endif
 
 BUILD_DIR = .deploy
+SERVICE_NAME = backend
 BINARY_NAME = api
 OUT_BINARY_PATH = ${BUILD_DIR}/${BINARY_NAME}
 
 EC2_USER ?= ubuntu
 EC2_HOST ?= ec2-23-20-111-38.compute-1.amazonaws.com
 APPS_HOME = /home/${EC2_USER}/apps/
-REMOTE_DEPLOY_PATH = ${APPS_HOME}${BINARY_NAME}/
+REMOTE_DEPLOY_PATH = ${APPS_HOME}${SERVICE_NAME}/
 
 dev:
 	docker compose up --build
