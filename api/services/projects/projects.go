@@ -25,6 +25,7 @@ type projectResponse struct {
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+	URLID       string    `json:"url_id"`
 }
 
 func toProjectResponse(project *ent.Project) projectResponse {
@@ -34,6 +35,7 @@ func toProjectResponse(project *ent.Project) projectResponse {
 		Description: project.Description,
 		CreatedAt:   project.CreatedAt,
 		UpdatedAt:   project.UpdatedAt,
+		URLID:       project.URLID,
 	}
 }
 

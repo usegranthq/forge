@@ -7,8 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/usegranthq/backend/config"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/clientcredentials"
 )
 
 type externalOidc struct{}
@@ -51,20 +49,22 @@ func (o *externalOidc) Request(method, url string, payload interface{}, response
 	return nil
 }
 
-func (o *externalOidc) RequestToken(c *gin.Context, clientID, clientSecret string) (string, error) {
-	tokenEndpoint := o.serverURL("/oauth2/token")
+func (o *externalOidc) RequestToken(c *gin.Context, clientID string, responseStruct interface{}) error {
+	request := o.createAuthenticatedRequest()
+	request.SetResult(responseStruct)
+	request.SetFormData(map[string]string{
+		"id": clientID,
+	})
 
-	conf := &clientcredentials.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		TokenURL:     tokenEndpoint,
-		AuthStyle:    oauth2.AuthStyleInHeader,
-	}
-
-	token, err := conf.Token(c)
+	resp, err := request.Execute("POST", "/oauth2/token")
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return token.AccessToken, nil
+	if resp.IsError() {
+		return fmt.Errorf("error response from server: %s%s", resp.Status(), resp.Body())
+	}
+
+	return nil
+
 }

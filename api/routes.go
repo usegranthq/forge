@@ -23,10 +23,12 @@ func defineProjectRoutes(routerGroup *gin.RouterGroup) {
 
 	clientGroup := projectIdGroup.Group("/clients")
 	clientGroup.POST("", projects.CreateOidcClient)
+	clientGroup.GET("", projects.ListOidcClients)
 
 	clientIdGroup := clientGroup.Group("/:clientID")
 	clientIdGroup.Use(middlewares.ValidateClient())
 
+	clientIdGroup.DELETE("", projects.DeleteOidcClient)
 	clientIdGroup.GET("/token", projects.GetToken)
 }
 
