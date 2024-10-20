@@ -1,0 +1,49 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+# To enable concurrency
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23.1
+
+      - name: Add remote machine to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create .pem file
+        run: |
+          mkdir -p certs -m 0700
+          echo "${{ secrets.EC2_SSH_KEY }}" > certs/ec2_ssh_key
+          chmod 600 certs/ec2_ssh_key
+
+      - name: Test ssh connection
+        run: ssh -i certs/ec2_ssh_key ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
+
+      # - name: Build, deploy and restart server
+      #   env:
+      #     ENV: master
+      #     EC2_USER: ${{ secrets.EC2_USER }}
+      #     EC2_HOST: ${{ secrets.EC2_HOST }}
+      #     EC2_CERT: certs/ec2_ssh_key.pem
+      #   run: make deploy
+
+      - name: Delete .pem file
+        if: always()
+        run: rm -rf certs
