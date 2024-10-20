@@ -9,6 +9,9 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
+env:
+  GO_VERSION: 1.23.2
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -20,7 +23,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.23.1
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Add remote machine to known hosts
         run: |
@@ -67,7 +70,7 @@ jobs:
             `)
 
       - name: Copy .env to remote machine
-        run: scp -i certs/ec2_ssh_key .env ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/apps/.env
+        run: scp -i certs/ec2_ssh_key .env ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/apps/.env
 
       # - name: Build, deploy and restart server
       #   env:
