@@ -15,7 +15,8 @@ OUT_BINARY_PATH = ${BUILD_DIR}/${BINARY_NAME}
 EC2_USER ?= ubuntu
 EC2_HOST ?= ec2-23-20-111-38.compute-1.amazonaws.com
 APPS_HOME = /home/${EC2_USER}/apps/
-REMOTE_DEPLOY_PATH = ${APPS_HOME}${SERVICE_NAME}/
+REMOTE_APP_DIR = ${APPS_HOME}${SERVICE_NAME}/
+REMOTE_DEPLOY_PATH=${REMOTE_APP_DIR}tmp/
 
 dev:
 	docker compose up --build
@@ -46,7 +47,7 @@ build:
 deploy:
 	make build
 	@if [ -f .deploy/.env ]; then \
-		scp ${EC2_CERT_OPT} .deploy/.env ${EC2_USER}@${EC2_HOST}:${REMOTE_DEPLOY_PATH}; \
+		scp ${EC2_CERT_OPT} .deploy/.env ${EC2_USER}@${EC2_HOST}:${REMOTE_APP_DIR}; \
 	fi
 	scp ${EC2_CERT_OPT} ${OUT_BINARY_PATH} ${EC2_USER}@${EC2_HOST}:${REMOTE_DEPLOY_PATH}
 	scp ${EC2_CERT_OPT} shell/ec2-deploy.sh ${EC2_USER}@${EC2_HOST}:${APPS_HOME}
