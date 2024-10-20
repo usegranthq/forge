@@ -15,6 +15,7 @@ import (
 	"github.com/usegranthq/backend/ent/oidcclient"
 	"github.com/usegranthq/backend/ent/predicate"
 	"github.com/usegranthq/backend/ent/project"
+	"github.com/usegranthq/backend/ent/projectdomain"
 	"github.com/usegranthq/backend/ent/user"
 )
 
@@ -96,6 +97,21 @@ func (pu *ProjectUpdate) SetUser(u *User) *ProjectUpdate {
 	return pu.SetUserID(u.ID)
 }
 
+// AddDomainIDs adds the "domain" edge to the ProjectDomain entity by IDs.
+func (pu *ProjectUpdate) AddDomainIDs(ids ...uuid.UUID) *ProjectUpdate {
+	pu.mutation.AddDomainIDs(ids...)
+	return pu
+}
+
+// AddDomain adds the "domain" edges to the ProjectDomain entity.
+func (pu *ProjectUpdate) AddDomain(p ...*ProjectDomain) *ProjectUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pu.AddDomainIDs(ids...)
+}
+
 // AddOidcClientIDs adds the "oidc_clients" edge to the OidcClient entity by IDs.
 func (pu *ProjectUpdate) AddOidcClientIDs(ids ...uuid.UUID) *ProjectUpdate {
 	pu.mutation.AddOidcClientIDs(ids...)
@@ -120,6 +136,27 @@ func (pu *ProjectUpdate) Mutation() *ProjectMutation {
 func (pu *ProjectUpdate) ClearUser() *ProjectUpdate {
 	pu.mutation.ClearUser()
 	return pu
+}
+
+// ClearDomain clears all "domain" edges to the ProjectDomain entity.
+func (pu *ProjectUpdate) ClearDomain() *ProjectUpdate {
+	pu.mutation.ClearDomain()
+	return pu
+}
+
+// RemoveDomainIDs removes the "domain" edge to ProjectDomain entities by IDs.
+func (pu *ProjectUpdate) RemoveDomainIDs(ids ...uuid.UUID) *ProjectUpdate {
+	pu.mutation.RemoveDomainIDs(ids...)
+	return pu
+}
+
+// RemoveDomain removes "domain" edges to ProjectDomain entities.
+func (pu *ProjectUpdate) RemoveDomain(p ...*ProjectDomain) *ProjectUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pu.RemoveDomainIDs(ids...)
 }
 
 // ClearOidcClients clears all "oidc_clients" edges to the OidcClient entity.
@@ -246,6 +283,51 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.DomainCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.DomainTable,
+			Columns: []string{project.DomainColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(projectdomain.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedDomainIDs(); len(nodes) > 0 && !pu.mutation.DomainCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.DomainTable,
+			Columns: []string{project.DomainColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(projectdomain.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.DomainIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.DomainTable,
+			Columns: []string{project.DomainColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(projectdomain.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -383,6 +465,21 @@ func (puo *ProjectUpdateOne) SetUser(u *User) *ProjectUpdateOne {
 	return puo.SetUserID(u.ID)
 }
 
+// AddDomainIDs adds the "domain" edge to the ProjectDomain entity by IDs.
+func (puo *ProjectUpdateOne) AddDomainIDs(ids ...uuid.UUID) *ProjectUpdateOne {
+	puo.mutation.AddDomainIDs(ids...)
+	return puo
+}
+
+// AddDomain adds the "domain" edges to the ProjectDomain entity.
+func (puo *ProjectUpdateOne) AddDomain(p ...*ProjectDomain) *ProjectUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return puo.AddDomainIDs(ids...)
+}
+
 // AddOidcClientIDs adds the "oidc_clients" edge to the OidcClient entity by IDs.
 func (puo *ProjectUpdateOne) AddOidcClientIDs(ids ...uuid.UUID) *ProjectUpdateOne {
 	puo.mutation.AddOidcClientIDs(ids...)
@@ -407,6 +504,27 @@ func (puo *ProjectUpdateOne) Mutation() *ProjectMutation {
 func (puo *ProjectUpdateOne) ClearUser() *ProjectUpdateOne {
 	puo.mutation.ClearUser()
 	return puo
+}
+
+// ClearDomain clears all "domain" edges to the ProjectDomain entity.
+func (puo *ProjectUpdateOne) ClearDomain() *ProjectUpdateOne {
+	puo.mutation.ClearDomain()
+	return puo
+}
+
+// RemoveDomainIDs removes the "domain" edge to ProjectDomain entities by IDs.
+func (puo *ProjectUpdateOne) RemoveDomainIDs(ids ...uuid.UUID) *ProjectUpdateOne {
+	puo.mutation.RemoveDomainIDs(ids...)
+	return puo
+}
+
+// RemoveDomain removes "domain" edges to ProjectDomain entities.
+func (puo *ProjectUpdateOne) RemoveDomain(p ...*ProjectDomain) *ProjectUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return puo.RemoveDomainIDs(ids...)
 }
 
 // ClearOidcClients clears all "oidc_clients" edges to the OidcClient entity.
@@ -563,6 +681,51 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.DomainCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.DomainTable,
+			Columns: []string{project.DomainColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(projectdomain.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedDomainIDs(); len(nodes) > 0 && !puo.mutation.DomainCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.DomainTable,
+			Columns: []string{project.DomainColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(projectdomain.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.DomainIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.DomainTable,
+			Columns: []string{project.DomainColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(projectdomain.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

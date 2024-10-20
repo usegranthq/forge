@@ -21,10 +21,12 @@ type OidcClient struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Audience holds the value of the "audience" field.
+	Audience string `json:"audience,omitempty"`
+	// ClientRefID holds the value of the "client_ref_id" field.
+	ClientRefID string `json:"client_ref_id,omitempty"`
 	// ClientID holds the value of the "client_id" field.
 	ClientID string `json:"client_id,omitempty"`
-	// ClientSecret holds the value of the "client_secret" field.
-	ClientSecret string `json:"client_secret,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -61,7 +63,7 @@ func (*OidcClient) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case oidcclient.FieldName, oidcclient.FieldClientID, oidcclient.FieldClientSecret:
+		case oidcclient.FieldName, oidcclient.FieldAudience, oidcclient.FieldClientRefID, oidcclient.FieldClientID:
 			values[i] = new(sql.NullString)
 		case oidcclient.FieldCreatedAt, oidcclient.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -96,17 +98,23 @@ func (oc *OidcClient) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				oc.Name = value.String
 			}
+		case oidcclient.FieldAudience:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field audience", values[i])
+			} else if value.Valid {
+				oc.Audience = value.String
+			}
+		case oidcclient.FieldClientRefID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field client_ref_id", values[i])
+			} else if value.Valid {
+				oc.ClientRefID = value.String
+			}
 		case oidcclient.FieldClientID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field client_id", values[i])
 			} else if value.Valid {
 				oc.ClientID = value.String
-			}
-		case oidcclient.FieldClientSecret:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field client_secret", values[i])
-			} else if value.Valid {
-				oc.ClientSecret = value.String
 			}
 		case oidcclient.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -171,11 +179,14 @@ func (oc *OidcClient) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(oc.Name)
 	builder.WriteString(", ")
+	builder.WriteString("audience=")
+	builder.WriteString(oc.Audience)
+	builder.WriteString(", ")
+	builder.WriteString("client_ref_id=")
+	builder.WriteString(oc.ClientRefID)
+	builder.WriteString(", ")
 	builder.WriteString("client_id=")
 	builder.WriteString(oc.ClientID)
-	builder.WriteString(", ")
-	builder.WriteString("client_secret=")
-	builder.WriteString(oc.ClientSecret)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(oc.CreatedAt.Format(time.ANSIC))

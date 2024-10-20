@@ -1,7 +1,6 @@
 package projects
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -87,7 +86,6 @@ func createProjectHandler(c *gin.Context, tx *ent.Tx) error {
 	err = external.Oidc.Request("POST", "/projects", payload, nil)
 	if err != nil {
 		utils.HttpError.InternalServerError(c)
-		fmt.Println("some error", err)
 		return err
 	}
 

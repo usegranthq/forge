@@ -16,6 +16,7 @@ import (
 	"github.com/usegranthq/backend/ent/oidcclient"
 	"github.com/usegranthq/backend/ent/predicate"
 	"github.com/usegranthq/backend/ent/project"
+	"github.com/usegranthq/backend/ent/projectdomain"
 	"github.com/usegranthq/backend/ent/user"
 )
 
@@ -27,6 +28,7 @@ type ProjectQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.Project
 	withUser        *UserQuery
+	withDomain      *ProjectDomainQuery
 	withOidcClients *OidcClientQuery
 	withFKs         bool
 	// intermediate query (i.e. traversal path).
@@ -80,6 +82,28 @@ func (pq *ProjectQuery) QueryUser() *UserQuery {
 			sqlgraph.From(project.Table, project.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, project.UserTable, project.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDomain chains the current query on the "domain" edge.
+func (pq *ProjectQuery) QueryDomain() *ProjectDomainQuery {
+	query := (&ProjectDomainClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(projectdomain.Table, projectdomain.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.DomainTable, project.DomainColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -302,6 +326,7 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		inters:          append([]Interceptor{}, pq.inters...),
 		predicates:      append([]predicate.Project{}, pq.predicates...),
 		withUser:        pq.withUser.Clone(),
+		withDomain:      pq.withDomain.Clone(),
 		withOidcClients: pq.withOidcClients.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
@@ -317,6 +342,17 @@ func (pq *ProjectQuery) WithUser(opts ...func(*UserQuery)) *ProjectQuery {
 		opt(query)
 	}
 	pq.withUser = query
+	return pq
+}
+
+// WithDomain tells the query-builder to eager-load the nodes that are connected to
+// the "domain" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithDomain(opts ...func(*ProjectDomainQuery)) *ProjectQuery {
+	query := (&ProjectDomainClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withDomain = query
 	return pq
 }
 
@@ -410,8 +446,9 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 		nodes       = []*Project{}
 		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			pq.withUser != nil,
+			pq.withDomain != nil,
 			pq.withOidcClients != nil,
 		}
 	)
@@ -442,6 +479,13 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 	if query := pq.withUser; query != nil {
 		if err := pq.loadUser(ctx, query, nodes, nil,
 			func(n *Project, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withDomain; query != nil {
+		if err := pq.loadDomain(ctx, query, nodes,
+			func(n *Project) { n.Edges.Domain = []*ProjectDomain{} },
+			func(n *Project, e *ProjectDomain) { n.Edges.Domain = append(n.Edges.Domain, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -484,6 +528,37 @@ func (pq *ProjectQuery) loadUser(ctx context.Context, query *UserQuery, nodes []
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (pq *ProjectQuery) loadDomain(ctx context.Context, query *ProjectDomainQuery, nodes []*Project, init func(*Project), assign func(*Project, *ProjectDomain)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.ProjectDomain(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.DomainColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.project_domain
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "project_domain" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "project_domain" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

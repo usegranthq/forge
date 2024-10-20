@@ -31,15 +31,21 @@ func (occ *OidcClientCreate) SetName(s string) *OidcClientCreate {
 	return occ
 }
 
-// SetClientID sets the "client_id" field.
-func (occ *OidcClientCreate) SetClientID(s string) *OidcClientCreate {
-	occ.mutation.SetClientID(s)
+// SetAudience sets the "audience" field.
+func (occ *OidcClientCreate) SetAudience(s string) *OidcClientCreate {
+	occ.mutation.SetAudience(s)
 	return occ
 }
 
-// SetClientSecret sets the "client_secret" field.
-func (occ *OidcClientCreate) SetClientSecret(s string) *OidcClientCreate {
-	occ.mutation.SetClientSecret(s)
+// SetClientRefID sets the "client_ref_id" field.
+func (occ *OidcClientCreate) SetClientRefID(s string) *OidcClientCreate {
+	occ.mutation.SetClientRefID(s)
+	return occ
+}
+
+// SetClientID sets the "client_id" field.
+func (occ *OidcClientCreate) SetClientID(s string) *OidcClientCreate {
+	occ.mutation.SetClientID(s)
 	return occ
 }
 
@@ -155,20 +161,28 @@ func (occ *OidcClientCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "OidcClient.name": %w`, err)}
 		}
 	}
+	if _, ok := occ.mutation.Audience(); !ok {
+		return &ValidationError{Name: "audience", err: errors.New(`ent: missing required field "OidcClient.audience"`)}
+	}
+	if v, ok := occ.mutation.Audience(); ok {
+		if err := oidcclient.AudienceValidator(v); err != nil {
+			return &ValidationError{Name: "audience", err: fmt.Errorf(`ent: validator failed for field "OidcClient.audience": %w`, err)}
+		}
+	}
+	if _, ok := occ.mutation.ClientRefID(); !ok {
+		return &ValidationError{Name: "client_ref_id", err: errors.New(`ent: missing required field "OidcClient.client_ref_id"`)}
+	}
+	if v, ok := occ.mutation.ClientRefID(); ok {
+		if err := oidcclient.ClientRefIDValidator(v); err != nil {
+			return &ValidationError{Name: "client_ref_id", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_ref_id": %w`, err)}
+		}
+	}
 	if _, ok := occ.mutation.ClientID(); !ok {
 		return &ValidationError{Name: "client_id", err: errors.New(`ent: missing required field "OidcClient.client_id"`)}
 	}
 	if v, ok := occ.mutation.ClientID(); ok {
 		if err := oidcclient.ClientIDValidator(v); err != nil {
 			return &ValidationError{Name: "client_id", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_id": %w`, err)}
-		}
-	}
-	if _, ok := occ.mutation.ClientSecret(); !ok {
-		return &ValidationError{Name: "client_secret", err: errors.New(`ent: missing required field "OidcClient.client_secret"`)}
-	}
-	if v, ok := occ.mutation.ClientSecret(); ok {
-		if err := oidcclient.ClientSecretValidator(v); err != nil {
-			return &ValidationError{Name: "client_secret", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_secret": %w`, err)}
 		}
 	}
 	if _, ok := occ.mutation.CreatedAt(); !ok {
@@ -220,13 +234,17 @@ func (occ *OidcClientCreate) createSpec() (*OidcClient, *sqlgraph.CreateSpec) {
 		_spec.SetField(oidcclient.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
+	if value, ok := occ.mutation.Audience(); ok {
+		_spec.SetField(oidcclient.FieldAudience, field.TypeString, value)
+		_node.Audience = value
+	}
+	if value, ok := occ.mutation.ClientRefID(); ok {
+		_spec.SetField(oidcclient.FieldClientRefID, field.TypeString, value)
+		_node.ClientRefID = value
+	}
 	if value, ok := occ.mutation.ClientID(); ok {
 		_spec.SetField(oidcclient.FieldClientID, field.TypeString, value)
 		_node.ClientID = value
-	}
-	if value, ok := occ.mutation.ClientSecret(); ok {
-		_spec.SetField(oidcclient.FieldClientSecret, field.TypeString, value)
-		_node.ClientSecret = value
 	}
 	if value, ok := occ.mutation.CreatedAt(); ok {
 		_spec.SetField(oidcclient.FieldCreatedAt, field.TypeTime, value)
@@ -317,6 +335,30 @@ func (u *OidcClientUpsert) UpdateName() *OidcClientUpsert {
 	return u
 }
 
+// SetAudience sets the "audience" field.
+func (u *OidcClientUpsert) SetAudience(v string) *OidcClientUpsert {
+	u.Set(oidcclient.FieldAudience, v)
+	return u
+}
+
+// UpdateAudience sets the "audience" field to the value that was provided on create.
+func (u *OidcClientUpsert) UpdateAudience() *OidcClientUpsert {
+	u.SetExcluded(oidcclient.FieldAudience)
+	return u
+}
+
+// SetClientRefID sets the "client_ref_id" field.
+func (u *OidcClientUpsert) SetClientRefID(v string) *OidcClientUpsert {
+	u.Set(oidcclient.FieldClientRefID, v)
+	return u
+}
+
+// UpdateClientRefID sets the "client_ref_id" field to the value that was provided on create.
+func (u *OidcClientUpsert) UpdateClientRefID() *OidcClientUpsert {
+	u.SetExcluded(oidcclient.FieldClientRefID)
+	return u
+}
+
 // SetClientID sets the "client_id" field.
 func (u *OidcClientUpsert) SetClientID(v string) *OidcClientUpsert {
 	u.Set(oidcclient.FieldClientID, v)
@@ -326,18 +368,6 @@ func (u *OidcClientUpsert) SetClientID(v string) *OidcClientUpsert {
 // UpdateClientID sets the "client_id" field to the value that was provided on create.
 func (u *OidcClientUpsert) UpdateClientID() *OidcClientUpsert {
 	u.SetExcluded(oidcclient.FieldClientID)
-	return u
-}
-
-// SetClientSecret sets the "client_secret" field.
-func (u *OidcClientUpsert) SetClientSecret(v string) *OidcClientUpsert {
-	u.Set(oidcclient.FieldClientSecret, v)
-	return u
-}
-
-// UpdateClientSecret sets the "client_secret" field to the value that was provided on create.
-func (u *OidcClientUpsert) UpdateClientSecret() *OidcClientUpsert {
-	u.SetExcluded(oidcclient.FieldClientSecret)
 	return u
 }
 
@@ -418,6 +448,34 @@ func (u *OidcClientUpsertOne) UpdateName() *OidcClientUpsertOne {
 	})
 }
 
+// SetAudience sets the "audience" field.
+func (u *OidcClientUpsertOne) SetAudience(v string) *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetAudience(v)
+	})
+}
+
+// UpdateAudience sets the "audience" field to the value that was provided on create.
+func (u *OidcClientUpsertOne) UpdateAudience() *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateAudience()
+	})
+}
+
+// SetClientRefID sets the "client_ref_id" field.
+func (u *OidcClientUpsertOne) SetClientRefID(v string) *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetClientRefID(v)
+	})
+}
+
+// UpdateClientRefID sets the "client_ref_id" field to the value that was provided on create.
+func (u *OidcClientUpsertOne) UpdateClientRefID() *OidcClientUpsertOne {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateClientRefID()
+	})
+}
+
 // SetClientID sets the "client_id" field.
 func (u *OidcClientUpsertOne) SetClientID(v string) *OidcClientUpsertOne {
 	return u.Update(func(s *OidcClientUpsert) {
@@ -429,20 +487,6 @@ func (u *OidcClientUpsertOne) SetClientID(v string) *OidcClientUpsertOne {
 func (u *OidcClientUpsertOne) UpdateClientID() *OidcClientUpsertOne {
 	return u.Update(func(s *OidcClientUpsert) {
 		s.UpdateClientID()
-	})
-}
-
-// SetClientSecret sets the "client_secret" field.
-func (u *OidcClientUpsertOne) SetClientSecret(v string) *OidcClientUpsertOne {
-	return u.Update(func(s *OidcClientUpsert) {
-		s.SetClientSecret(v)
-	})
-}
-
-// UpdateClientSecret sets the "client_secret" field to the value that was provided on create.
-func (u *OidcClientUpsertOne) UpdateClientSecret() *OidcClientUpsertOne {
-	return u.Update(func(s *OidcClientUpsert) {
-		s.UpdateClientSecret()
 	})
 }
 
@@ -692,6 +736,34 @@ func (u *OidcClientUpsertBulk) UpdateName() *OidcClientUpsertBulk {
 	})
 }
 
+// SetAudience sets the "audience" field.
+func (u *OidcClientUpsertBulk) SetAudience(v string) *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetAudience(v)
+	})
+}
+
+// UpdateAudience sets the "audience" field to the value that was provided on create.
+func (u *OidcClientUpsertBulk) UpdateAudience() *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateAudience()
+	})
+}
+
+// SetClientRefID sets the "client_ref_id" field.
+func (u *OidcClientUpsertBulk) SetClientRefID(v string) *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.SetClientRefID(v)
+	})
+}
+
+// UpdateClientRefID sets the "client_ref_id" field to the value that was provided on create.
+func (u *OidcClientUpsertBulk) UpdateClientRefID() *OidcClientUpsertBulk {
+	return u.Update(func(s *OidcClientUpsert) {
+		s.UpdateClientRefID()
+	})
+}
+
 // SetClientID sets the "client_id" field.
 func (u *OidcClientUpsertBulk) SetClientID(v string) *OidcClientUpsertBulk {
 	return u.Update(func(s *OidcClientUpsert) {
@@ -703,20 +775,6 @@ func (u *OidcClientUpsertBulk) SetClientID(v string) *OidcClientUpsertBulk {
 func (u *OidcClientUpsertBulk) UpdateClientID() *OidcClientUpsertBulk {
 	return u.Update(func(s *OidcClientUpsert) {
 		s.UpdateClientID()
-	})
-}
-
-// SetClientSecret sets the "client_secret" field.
-func (u *OidcClientUpsertBulk) SetClientSecret(v string) *OidcClientUpsertBulk {
-	return u.Update(func(s *OidcClientUpsert) {
-		s.SetClientSecret(v)
-	})
-}
-
-// UpdateClientSecret sets the "client_secret" field to the value that was provided on create.
-func (u *OidcClientUpsertBulk) UpdateClientSecret() *OidcClientUpsertBulk {
-	return u.Update(func(s *OidcClientUpsert) {
-		s.UpdateClientSecret()
 	})
 }
 

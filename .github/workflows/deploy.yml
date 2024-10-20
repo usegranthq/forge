@@ -34,7 +34,7 @@ jobs:
           chmod 600 certs/ec2_ssh_key
 
       - name: Test ssh connection
-        run: ssh -i certs/ec2_ssh_key ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
+        run: ssh -i certs/ec2_ssh_key -T ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
 
       # - name: Build, deploy and restart server
       #   env:

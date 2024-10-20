@@ -389,6 +389,29 @@ func HasUserWith(preds ...predicate.User) predicate.Project {
 	})
 }
 
+// HasDomain applies the HasEdge predicate on the "domain" edge.
+func HasDomain() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DomainTable, DomainColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDomainWith applies the HasEdge predicate on the "domain" edge with a given conditions (other predicates).
+func HasDomainWith(preds ...predicate.ProjectDomain) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := newDomainStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasOidcClients applies the HasEdge predicate on the "oidc_clients" edge.
 func HasOidcClients() predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {

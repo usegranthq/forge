@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/usegranthq/backend/ent/oidcclient"
 	"github.com/usegranthq/backend/ent/project"
+	"github.com/usegranthq/backend/ent/projectdomain"
 	"github.com/usegranthq/backend/ent/schema"
 	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
@@ -25,20 +26,24 @@ func init() {
 	oidcclientDescName := oidcclientFields[1].Descriptor()
 	// oidcclient.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	oidcclient.NameValidator = oidcclientDescName.Validators[0].(func(string) error)
+	// oidcclientDescAudience is the schema descriptor for audience field.
+	oidcclientDescAudience := oidcclientFields[2].Descriptor()
+	// oidcclient.AudienceValidator is a validator for the "audience" field. It is called by the builders before save.
+	oidcclient.AudienceValidator = oidcclientDescAudience.Validators[0].(func(string) error)
+	// oidcclientDescClientRefID is the schema descriptor for client_ref_id field.
+	oidcclientDescClientRefID := oidcclientFields[3].Descriptor()
+	// oidcclient.ClientRefIDValidator is a validator for the "client_ref_id" field. It is called by the builders before save.
+	oidcclient.ClientRefIDValidator = oidcclientDescClientRefID.Validators[0].(func(string) error)
 	// oidcclientDescClientID is the schema descriptor for client_id field.
-	oidcclientDescClientID := oidcclientFields[2].Descriptor()
+	oidcclientDescClientID := oidcclientFields[4].Descriptor()
 	// oidcclient.ClientIDValidator is a validator for the "client_id" field. It is called by the builders before save.
 	oidcclient.ClientIDValidator = oidcclientDescClientID.Validators[0].(func(string) error)
-	// oidcclientDescClientSecret is the schema descriptor for client_secret field.
-	oidcclientDescClientSecret := oidcclientFields[3].Descriptor()
-	// oidcclient.ClientSecretValidator is a validator for the "client_secret" field. It is called by the builders before save.
-	oidcclient.ClientSecretValidator = oidcclientDescClientSecret.Validators[0].(func(string) error)
 	// oidcclientDescCreatedAt is the schema descriptor for created_at field.
-	oidcclientDescCreatedAt := oidcclientFields[4].Descriptor()
+	oidcclientDescCreatedAt := oidcclientFields[5].Descriptor()
 	// oidcclient.DefaultCreatedAt holds the default value on creation for the created_at field.
 	oidcclient.DefaultCreatedAt = oidcclientDescCreatedAt.Default.(func() time.Time)
 	// oidcclientDescUpdatedAt is the schema descriptor for updated_at field.
-	oidcclientDescUpdatedAt := oidcclientFields[5].Descriptor()
+	oidcclientDescUpdatedAt := oidcclientFields[6].Descriptor()
 	// oidcclient.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	oidcclient.DefaultUpdatedAt = oidcclientDescUpdatedAt.Default.(func() time.Time)
 	// oidcclient.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -71,6 +76,30 @@ func init() {
 	projectDescID := projectFields[0].Descriptor()
 	// project.DefaultID holds the default value on creation for the id field.
 	project.DefaultID = projectDescID.Default.(func() uuid.UUID)
+	projectdomainFields := schema.ProjectDomain{}.Fields()
+	_ = projectdomainFields
+	// projectdomainDescDomain is the schema descriptor for domain field.
+	projectdomainDescDomain := projectdomainFields[1].Descriptor()
+	// projectdomain.DomainValidator is a validator for the "domain" field. It is called by the builders before save.
+	projectdomain.DomainValidator = projectdomainDescDomain.Validators[0].(func(string) error)
+	// projectdomainDescVerified is the schema descriptor for verified field.
+	projectdomainDescVerified := projectdomainFields[2].Descriptor()
+	// projectdomain.DefaultVerified holds the default value on creation for the verified field.
+	projectdomain.DefaultVerified = projectdomainDescVerified.Default.(bool)
+	// projectdomainDescCreatedAt is the schema descriptor for created_at field.
+	projectdomainDescCreatedAt := projectdomainFields[4].Descriptor()
+	// projectdomain.DefaultCreatedAt holds the default value on creation for the created_at field.
+	projectdomain.DefaultCreatedAt = projectdomainDescCreatedAt.Default.(func() time.Time)
+	// projectdomainDescUpdatedAt is the schema descriptor for updated_at field.
+	projectdomainDescUpdatedAt := projectdomainFields[5].Descriptor()
+	// projectdomain.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	projectdomain.DefaultUpdatedAt = projectdomainDescUpdatedAt.Default.(func() time.Time)
+	// projectdomain.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	projectdomain.UpdateDefaultUpdatedAt = projectdomainDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// projectdomainDescID is the schema descriptor for id field.
+	projectdomainDescID := projectdomainFields[0].Descriptor()
+	// projectdomain.DefaultID holds the default value on creation for the id field.
+	projectdomain.DefaultID = projectdomainDescID.Default.(func() uuid.UUID)
 	tokenFields := schema.Token{}.Fields()
 	_ = tokenFields
 	// tokenDescName is the schema descriptor for name field.

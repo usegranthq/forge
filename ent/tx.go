@@ -16,6 +16,8 @@ type Tx struct {
 	OidcClient *OidcClientClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
+	// ProjectDomain is the client for interacting with the ProjectDomain builders.
+	ProjectDomain *ProjectDomainClient
 	// Token is the client for interacting with the Token builders.
 	Token *TokenClient
 	// User is the client for interacting with the User builders.
@@ -157,6 +159,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.OidcClient = NewOidcClientClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
+	tx.ProjectDomain = NewProjectDomainClient(tx.config)
 	tx.Token = NewTokenClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserSession = NewUserSessionClient(tx.config)

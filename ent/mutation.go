@@ -15,6 +15,7 @@ import (
 	"github.com/usegranthq/backend/ent/oidcclient"
 	"github.com/usegranthq/backend/ent/predicate"
 	"github.com/usegranthq/backend/ent/project"
+	"github.com/usegranthq/backend/ent/projectdomain"
 	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
@@ -32,6 +33,7 @@ const (
 	// Node types.
 	TypeOidcClient       = "OidcClient"
 	TypeProject          = "Project"
+	TypeProjectDomain    = "ProjectDomain"
 	TypeToken            = "Token"
 	TypeUser             = "User"
 	TypeUserSession      = "UserSession"
@@ -45,8 +47,9 @@ type OidcClientMutation struct {
 	typ            string
 	id             *uuid.UUID
 	name           *string
+	audience       *string
+	client_ref_id  *string
 	client_id      *string
-	client_secret  *string
 	created_at     *time.Time
 	updated_at     *time.Time
 	clearedFields  map[string]struct{}
@@ -197,6 +200,78 @@ func (m *OidcClientMutation) ResetName() {
 	m.name = nil
 }
 
+// SetAudience sets the "audience" field.
+func (m *OidcClientMutation) SetAudience(s string) {
+	m.audience = &s
+}
+
+// Audience returns the value of the "audience" field in the mutation.
+func (m *OidcClientMutation) Audience() (r string, exists bool) {
+	v := m.audience
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAudience returns the old "audience" field's value of the OidcClient entity.
+// If the OidcClient object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OidcClientMutation) OldAudience(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAudience is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAudience requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAudience: %w", err)
+	}
+	return oldValue.Audience, nil
+}
+
+// ResetAudience resets all changes to the "audience" field.
+func (m *OidcClientMutation) ResetAudience() {
+	m.audience = nil
+}
+
+// SetClientRefID sets the "client_ref_id" field.
+func (m *OidcClientMutation) SetClientRefID(s string) {
+	m.client_ref_id = &s
+}
+
+// ClientRefID returns the value of the "client_ref_id" field in the mutation.
+func (m *OidcClientMutation) ClientRefID() (r string, exists bool) {
+	v := m.client_ref_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientRefID returns the old "client_ref_id" field's value of the OidcClient entity.
+// If the OidcClient object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OidcClientMutation) OldClientRefID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientRefID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientRefID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientRefID: %w", err)
+	}
+	return oldValue.ClientRefID, nil
+}
+
+// ResetClientRefID resets all changes to the "client_ref_id" field.
+func (m *OidcClientMutation) ResetClientRefID() {
+	m.client_ref_id = nil
+}
+
 // SetClientID sets the "client_id" field.
 func (m *OidcClientMutation) SetClientID(s string) {
 	m.client_id = &s
@@ -231,42 +306,6 @@ func (m *OidcClientMutation) OldClientID(ctx context.Context) (v string, err err
 // ResetClientID resets all changes to the "client_id" field.
 func (m *OidcClientMutation) ResetClientID() {
 	m.client_id = nil
-}
-
-// SetClientSecret sets the "client_secret" field.
-func (m *OidcClientMutation) SetClientSecret(s string) {
-	m.client_secret = &s
-}
-
-// ClientSecret returns the value of the "client_secret" field in the mutation.
-func (m *OidcClientMutation) ClientSecret() (r string, exists bool) {
-	v := m.client_secret
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldClientSecret returns the old "client_secret" field's value of the OidcClient entity.
-// If the OidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OidcClientMutation) OldClientSecret(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldClientSecret is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldClientSecret requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldClientSecret: %w", err)
-	}
-	return oldValue.ClientSecret, nil
-}
-
-// ResetClientSecret resets all changes to the "client_secret" field.
-func (m *OidcClientMutation) ResetClientSecret() {
-	m.client_secret = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -414,15 +453,18 @@ func (m *OidcClientMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OidcClientMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, oidcclient.FieldName)
 	}
+	if m.audience != nil {
+		fields = append(fields, oidcclient.FieldAudience)
+	}
+	if m.client_ref_id != nil {
+		fields = append(fields, oidcclient.FieldClientRefID)
+	}
 	if m.client_id != nil {
 		fields = append(fields, oidcclient.FieldClientID)
-	}
-	if m.client_secret != nil {
-		fields = append(fields, oidcclient.FieldClientSecret)
 	}
 	if m.created_at != nil {
 		fields = append(fields, oidcclient.FieldCreatedAt)
@@ -440,10 +482,12 @@ func (m *OidcClientMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case oidcclient.FieldName:
 		return m.Name()
+	case oidcclient.FieldAudience:
+		return m.Audience()
+	case oidcclient.FieldClientRefID:
+		return m.ClientRefID()
 	case oidcclient.FieldClientID:
 		return m.ClientID()
-	case oidcclient.FieldClientSecret:
-		return m.ClientSecret()
 	case oidcclient.FieldCreatedAt:
 		return m.CreatedAt()
 	case oidcclient.FieldUpdatedAt:
@@ -459,10 +503,12 @@ func (m *OidcClientMutation) OldField(ctx context.Context, name string) (ent.Val
 	switch name {
 	case oidcclient.FieldName:
 		return m.OldName(ctx)
+	case oidcclient.FieldAudience:
+		return m.OldAudience(ctx)
+	case oidcclient.FieldClientRefID:
+		return m.OldClientRefID(ctx)
 	case oidcclient.FieldClientID:
 		return m.OldClientID(ctx)
-	case oidcclient.FieldClientSecret:
-		return m.OldClientSecret(ctx)
 	case oidcclient.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case oidcclient.FieldUpdatedAt:
@@ -483,19 +529,26 @@ func (m *OidcClientMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetName(v)
 		return nil
+	case oidcclient.FieldAudience:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAudience(v)
+		return nil
+	case oidcclient.FieldClientRefID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientRefID(v)
+		return nil
 	case oidcclient.FieldClientID:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetClientID(v)
-		return nil
-	case oidcclient.FieldClientSecret:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetClientSecret(v)
 		return nil
 	case oidcclient.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -563,11 +616,14 @@ func (m *OidcClientMutation) ResetField(name string) error {
 	case oidcclient.FieldName:
 		m.ResetName()
 		return nil
+	case oidcclient.FieldAudience:
+		m.ResetAudience()
+		return nil
+	case oidcclient.FieldClientRefID:
+		m.ResetClientRefID()
+		return nil
 	case oidcclient.FieldClientID:
 		m.ResetClientID()
-		return nil
-	case oidcclient.FieldClientSecret:
-		m.ResetClientSecret()
 		return nil
 	case oidcclient.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -667,6 +723,9 @@ type ProjectMutation struct {
 	clearedFields       map[string]struct{}
 	user                *uuid.UUID
 	cleareduser         bool
+	domain              map[uuid.UUID]struct{}
+	removeddomain       map[uuid.UUID]struct{}
+	cleareddomain       bool
 	oidc_clients        map[uuid.UUID]struct{}
 	removedoidc_clients map[uuid.UUID]struct{}
 	clearedoidc_clients bool
@@ -1011,6 +1070,60 @@ func (m *ProjectMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// AddDomainIDs adds the "domain" edge to the ProjectDomain entity by ids.
+func (m *ProjectMutation) AddDomainIDs(ids ...uuid.UUID) {
+	if m.domain == nil {
+		m.domain = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.domain[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDomain clears the "domain" edge to the ProjectDomain entity.
+func (m *ProjectMutation) ClearDomain() {
+	m.cleareddomain = true
+}
+
+// DomainCleared reports if the "domain" edge to the ProjectDomain entity was cleared.
+func (m *ProjectMutation) DomainCleared() bool {
+	return m.cleareddomain
+}
+
+// RemoveDomainIDs removes the "domain" edge to the ProjectDomain entity by IDs.
+func (m *ProjectMutation) RemoveDomainIDs(ids ...uuid.UUID) {
+	if m.removeddomain == nil {
+		m.removeddomain = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.domain, ids[i])
+		m.removeddomain[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDomain returns the removed IDs of the "domain" edge to the ProjectDomain entity.
+func (m *ProjectMutation) RemovedDomainIDs() (ids []uuid.UUID) {
+	for id := range m.removeddomain {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DomainIDs returns the "domain" edge IDs in the mutation.
+func (m *ProjectMutation) DomainIDs() (ids []uuid.UUID) {
+	for id := range m.domain {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDomain resets all changes to the "domain" edge.
+func (m *ProjectMutation) ResetDomain() {
+	m.domain = nil
+	m.cleareddomain = false
+	m.removeddomain = nil
+}
+
 // AddOidcClientIDs adds the "oidc_clients" edge to the OidcClient entity by ids.
 func (m *ProjectMutation) AddOidcClientIDs(ids ...uuid.UUID) {
 	if m.oidc_clients == nil {
@@ -1275,9 +1388,12 @@ func (m *ProjectMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProjectMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.user != nil {
 		edges = append(edges, project.EdgeUser)
+	}
+	if m.domain != nil {
+		edges = append(edges, project.EdgeDomain)
 	}
 	if m.oidc_clients != nil {
 		edges = append(edges, project.EdgeOidcClients)
@@ -1293,6 +1409,12 @@ func (m *ProjectMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case project.EdgeDomain:
+		ids := make([]ent.Value, 0, len(m.domain))
+		for id := range m.domain {
+			ids = append(ids, id)
+		}
+		return ids
 	case project.EdgeOidcClients:
 		ids := make([]ent.Value, 0, len(m.oidc_clients))
 		for id := range m.oidc_clients {
@@ -1305,7 +1427,10 @@ func (m *ProjectMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProjectMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removeddomain != nil {
+		edges = append(edges, project.EdgeDomain)
+	}
 	if m.removedoidc_clients != nil {
 		edges = append(edges, project.EdgeOidcClients)
 	}
@@ -1316,6 +1441,12 @@ func (m *ProjectMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *ProjectMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case project.EdgeDomain:
+		ids := make([]ent.Value, 0, len(m.removeddomain))
+		for id := range m.removeddomain {
+			ids = append(ids, id)
+		}
+		return ids
 	case project.EdgeOidcClients:
 		ids := make([]ent.Value, 0, len(m.removedoidc_clients))
 		for id := range m.removedoidc_clients {
@@ -1328,9 +1459,12 @@ func (m *ProjectMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProjectMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.cleareduser {
 		edges = append(edges, project.EdgeUser)
+	}
+	if m.cleareddomain {
+		edges = append(edges, project.EdgeDomain)
 	}
 	if m.clearedoidc_clients {
 		edges = append(edges, project.EdgeOidcClients)
@@ -1344,6 +1478,8 @@ func (m *ProjectMutation) EdgeCleared(name string) bool {
 	switch name {
 	case project.EdgeUser:
 		return m.cleareduser
+	case project.EdgeDomain:
+		return m.cleareddomain
 	case project.EdgeOidcClients:
 		return m.clearedoidc_clients
 	}
@@ -1368,11 +1504,651 @@ func (m *ProjectMutation) ResetEdge(name string) error {
 	case project.EdgeUser:
 		m.ResetUser()
 		return nil
+	case project.EdgeDomain:
+		m.ResetDomain()
+		return nil
 	case project.EdgeOidcClients:
 		m.ResetOidcClients()
 		return nil
 	}
 	return fmt.Errorf("unknown Project edge %s", name)
+}
+
+// ProjectDomainMutation represents an operation that mutates the ProjectDomain nodes in the graph.
+type ProjectDomainMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	domain         *string
+	verified       *bool
+	verified_at    *string
+	created_at     *time.Time
+	updated_at     *time.Time
+	clearedFields  map[string]struct{}
+	project        *uuid.UUID
+	clearedproject bool
+	done           bool
+	oldValue       func(context.Context) (*ProjectDomain, error)
+	predicates     []predicate.ProjectDomain
+}
+
+var _ ent.Mutation = (*ProjectDomainMutation)(nil)
+
+// projectdomainOption allows management of the mutation configuration using functional options.
+type projectdomainOption func(*ProjectDomainMutation)
+
+// newProjectDomainMutation creates new mutation for the ProjectDomain entity.
+func newProjectDomainMutation(c config, op Op, opts ...projectdomainOption) *ProjectDomainMutation {
+	m := &ProjectDomainMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeProjectDomain,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withProjectDomainID sets the ID field of the mutation.
+func withProjectDomainID(id uuid.UUID) projectdomainOption {
+	return func(m *ProjectDomainMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ProjectDomain
+		)
+		m.oldValue = func(ctx context.Context) (*ProjectDomain, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ProjectDomain.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withProjectDomain sets the old ProjectDomain of the mutation.
+func withProjectDomain(node *ProjectDomain) projectdomainOption {
+	return func(m *ProjectDomainMutation) {
+		m.oldValue = func(context.Context) (*ProjectDomain, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ProjectDomainMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ProjectDomainMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ProjectDomain entities.
+func (m *ProjectDomainMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ProjectDomainMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ProjectDomainMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ProjectDomain.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetDomain sets the "domain" field.
+func (m *ProjectDomainMutation) SetDomain(s string) {
+	m.domain = &s
+}
+
+// Domain returns the value of the "domain" field in the mutation.
+func (m *ProjectDomainMutation) Domain() (r string, exists bool) {
+	v := m.domain
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDomain returns the old "domain" field's value of the ProjectDomain entity.
+// If the ProjectDomain object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProjectDomainMutation) OldDomain(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDomain is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDomain requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDomain: %w", err)
+	}
+	return oldValue.Domain, nil
+}
+
+// ResetDomain resets all changes to the "domain" field.
+func (m *ProjectDomainMutation) ResetDomain() {
+	m.domain = nil
+}
+
+// SetVerified sets the "verified" field.
+func (m *ProjectDomainMutation) SetVerified(b bool) {
+	m.verified = &b
+}
+
+// Verified returns the value of the "verified" field in the mutation.
+func (m *ProjectDomainMutation) Verified() (r bool, exists bool) {
+	v := m.verified
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVerified returns the old "verified" field's value of the ProjectDomain entity.
+// If the ProjectDomain object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProjectDomainMutation) OldVerified(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVerified is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVerified requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVerified: %w", err)
+	}
+	return oldValue.Verified, nil
+}
+
+// ResetVerified resets all changes to the "verified" field.
+func (m *ProjectDomainMutation) ResetVerified() {
+	m.verified = nil
+}
+
+// SetVerifiedAt sets the "verified_at" field.
+func (m *ProjectDomainMutation) SetVerifiedAt(s string) {
+	m.verified_at = &s
+}
+
+// VerifiedAt returns the value of the "verified_at" field in the mutation.
+func (m *ProjectDomainMutation) VerifiedAt() (r string, exists bool) {
+	v := m.verified_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVerifiedAt returns the old "verified_at" field's value of the ProjectDomain entity.
+// If the ProjectDomain object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProjectDomainMutation) OldVerifiedAt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVerifiedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVerifiedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVerifiedAt: %w", err)
+	}
+	return oldValue.VerifiedAt, nil
+}
+
+// ClearVerifiedAt clears the value of the "verified_at" field.
+func (m *ProjectDomainMutation) ClearVerifiedAt() {
+	m.verified_at = nil
+	m.clearedFields[projectdomain.FieldVerifiedAt] = struct{}{}
+}
+
+// VerifiedAtCleared returns if the "verified_at" field was cleared in this mutation.
+func (m *ProjectDomainMutation) VerifiedAtCleared() bool {
+	_, ok := m.clearedFields[projectdomain.FieldVerifiedAt]
+	return ok
+}
+
+// ResetVerifiedAt resets all changes to the "verified_at" field.
+func (m *ProjectDomainMutation) ResetVerifiedAt() {
+	m.verified_at = nil
+	delete(m.clearedFields, projectdomain.FieldVerifiedAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ProjectDomainMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ProjectDomainMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ProjectDomain entity.
+// If the ProjectDomain object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProjectDomainMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ProjectDomainMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ProjectDomainMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ProjectDomainMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ProjectDomain entity.
+// If the ProjectDomain object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProjectDomainMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ProjectDomainMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetProjectID sets the "project" edge to the Project entity by id.
+func (m *ProjectDomainMutation) SetProjectID(id uuid.UUID) {
+	m.project = &id
+}
+
+// ClearProject clears the "project" edge to the Project entity.
+func (m *ProjectDomainMutation) ClearProject() {
+	m.clearedproject = true
+}
+
+// ProjectCleared reports if the "project" edge to the Project entity was cleared.
+func (m *ProjectDomainMutation) ProjectCleared() bool {
+	return m.clearedproject
+}
+
+// ProjectID returns the "project" edge ID in the mutation.
+func (m *ProjectDomainMutation) ProjectID() (id uuid.UUID, exists bool) {
+	if m.project != nil {
+		return *m.project, true
+	}
+	return
+}
+
+// ProjectIDs returns the "project" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ProjectID instead. It exists only for internal usage by the builders.
+func (m *ProjectDomainMutation) ProjectIDs() (ids []uuid.UUID) {
+	if id := m.project; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetProject resets all changes to the "project" edge.
+func (m *ProjectDomainMutation) ResetProject() {
+	m.project = nil
+	m.clearedproject = false
+}
+
+// Where appends a list predicates to the ProjectDomainMutation builder.
+func (m *ProjectDomainMutation) Where(ps ...predicate.ProjectDomain) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ProjectDomainMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ProjectDomainMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ProjectDomain, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ProjectDomainMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ProjectDomainMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ProjectDomain).
+func (m *ProjectDomainMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ProjectDomainMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.domain != nil {
+		fields = append(fields, projectdomain.FieldDomain)
+	}
+	if m.verified != nil {
+		fields = append(fields, projectdomain.FieldVerified)
+	}
+	if m.verified_at != nil {
+		fields = append(fields, projectdomain.FieldVerifiedAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, projectdomain.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, projectdomain.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ProjectDomainMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case projectdomain.FieldDomain:
+		return m.Domain()
+	case projectdomain.FieldVerified:
+		return m.Verified()
+	case projectdomain.FieldVerifiedAt:
+		return m.VerifiedAt()
+	case projectdomain.FieldCreatedAt:
+		return m.CreatedAt()
+	case projectdomain.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ProjectDomainMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case projectdomain.FieldDomain:
+		return m.OldDomain(ctx)
+	case projectdomain.FieldVerified:
+		return m.OldVerified(ctx)
+	case projectdomain.FieldVerifiedAt:
+		return m.OldVerifiedAt(ctx)
+	case projectdomain.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case projectdomain.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ProjectDomain field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProjectDomainMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case projectdomain.FieldDomain:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDomain(v)
+		return nil
+	case projectdomain.FieldVerified:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVerified(v)
+		return nil
+	case projectdomain.FieldVerifiedAt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVerifiedAt(v)
+		return nil
+	case projectdomain.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case projectdomain.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProjectDomain field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ProjectDomainMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ProjectDomainMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProjectDomainMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ProjectDomain numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ProjectDomainMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(projectdomain.FieldVerifiedAt) {
+		fields = append(fields, projectdomain.FieldVerifiedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ProjectDomainMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ProjectDomainMutation) ClearField(name string) error {
+	switch name {
+	case projectdomain.FieldVerifiedAt:
+		m.ClearVerifiedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ProjectDomain nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ProjectDomainMutation) ResetField(name string) error {
+	switch name {
+	case projectdomain.FieldDomain:
+		m.ResetDomain()
+		return nil
+	case projectdomain.FieldVerified:
+		m.ResetVerified()
+		return nil
+	case projectdomain.FieldVerifiedAt:
+		m.ResetVerifiedAt()
+		return nil
+	case projectdomain.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case projectdomain.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ProjectDomain field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ProjectDomainMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.project != nil {
+		edges = append(edges, projectdomain.EdgeProject)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ProjectDomainMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case projectdomain.EdgeProject:
+		if id := m.project; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ProjectDomainMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ProjectDomainMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ProjectDomainMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedproject {
+		edges = append(edges, projectdomain.EdgeProject)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ProjectDomainMutation) EdgeCleared(name string) bool {
+	switch name {
+	case projectdomain.EdgeProject:
+		return m.clearedproject
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ProjectDomainMutation) ClearEdge(name string) error {
+	switch name {
+	case projectdomain.EdgeProject:
+		m.ClearProject()
+		return nil
+	}
+	return fmt.Errorf("unknown ProjectDomain unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ProjectDomainMutation) ResetEdge(name string) error {
+	switch name {
+	case projectdomain.EdgeProject:
+		m.ResetProject()
+		return nil
+	}
+	return fmt.Errorf("unknown ProjectDomain edge %s", name)
 }
 
 // TokenMutation represents an operation that mutates the Token nodes in the graph.

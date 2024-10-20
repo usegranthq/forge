@@ -18,6 +18,8 @@ import (
 type clientResponse struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
+	Subject   string    `json:"subject"`
+	Audience  string    `json:"audience"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -26,6 +28,8 @@ func toClientResponse(client *ent.OidcClient) clientResponse {
 	return clientResponse{
 		ID:        client.ID.String(),
 		Name:      client.Name,
+		Subject:   client.ClientID,
+		Audience:  client.Audience,
 		CreatedAt: client.CreatedAt,
 		UpdatedAt: client.UpdatedAt,
 	}
@@ -68,11 +72,12 @@ func CreateOidcClient(c *gin.Context) {
 	client, err := db.Client.OidcClient.Create().
 		SetProjectID(projectID).
 		SetName(req.Name).
-		SetClientID(response.ID).
+		SetAudience(req.Audience).
+		SetClientRefID(response.ID).
+		SetClientID(response.ClientID).
 		Save(c)
 
 	if err != nil {
-		fmt.Println("something went wrong", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -99,9 +104,7 @@ func GetToken(c *gin.Context) {
 		return
 	}
 
-	if err := external.Oidc.RequestToken(c, oidcClient.ClientID, &response); err != nil {
-		fmt.Println("here", err)
-
+	if err := external.Oidc.RequestToken(c, oidcClient.ClientRefID, &response); err != nil {
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -141,13 +144,12 @@ func DeleteOidcClient(c *gin.Context) {
 		return
 	}
 
-	var registerUrl = fmt.Sprintf("projects/%s/clients/%s", projectID.String(), oidcClient.ClientID)
+	var registerUrl = fmt.Sprintf("projects/%s/clients/%s", projectID.String(), oidcClient.ClientRefID)
 
 	if err := external.Oidc.Request("DELETE", registerUrl, nil, nil); err != nil {
 		utils.HttpError.InternalServerError(c)
 		return
 	}
-	fmt.Println("here", projectID, clientID)
 
 	err = db.Client.OidcClient.DeleteOneID(clientID).
 		Where(oidcclient.HasProjectWith(project.ID(projectID))).

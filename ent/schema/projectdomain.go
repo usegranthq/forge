@@ -9,29 +9,28 @@ import (
 	"github.com/google/uuid"
 )
 
-// OidcClient holds the schema definition for the OidcClient entity.
-type OidcClient struct {
+// ProjectDomain holds the schema definition for the ProjectDomain entity.
+type ProjectDomain struct {
 	ent.Schema
 }
 
-// Fields of the OidcClient.
-func (OidcClient) Fields() []ent.Field {
+// Fields of the ProjectDomain.
+func (ProjectDomain) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.String("name").NotEmpty(),
-		field.String("audience").NotEmpty(),
-		field.String("client_ref_id").NotEmpty(),
-		field.String("client_id").NotEmpty(),
+		field.String("domain").NotEmpty(),
+		field.Bool("verified").Default(false),
+		field.String("verified_at").Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 
-// Edges of the OidcClient.
-func (OidcClient) Edges() []ent.Edge {
+// Edges of the ProjectDomain.
+func (ProjectDomain) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("project", Project.Type).
-			Ref("oidc_clients").
+			Ref("domain").
 			Unique().
 			Required(),
 	}

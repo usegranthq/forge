@@ -44,6 +44,34 @@ func (ocu *OidcClientUpdate) SetNillableName(s *string) *OidcClientUpdate {
 	return ocu
 }
 
+// SetAudience sets the "audience" field.
+func (ocu *OidcClientUpdate) SetAudience(s string) *OidcClientUpdate {
+	ocu.mutation.SetAudience(s)
+	return ocu
+}
+
+// SetNillableAudience sets the "audience" field if the given value is not nil.
+func (ocu *OidcClientUpdate) SetNillableAudience(s *string) *OidcClientUpdate {
+	if s != nil {
+		ocu.SetAudience(*s)
+	}
+	return ocu
+}
+
+// SetClientRefID sets the "client_ref_id" field.
+func (ocu *OidcClientUpdate) SetClientRefID(s string) *OidcClientUpdate {
+	ocu.mutation.SetClientRefID(s)
+	return ocu
+}
+
+// SetNillableClientRefID sets the "client_ref_id" field if the given value is not nil.
+func (ocu *OidcClientUpdate) SetNillableClientRefID(s *string) *OidcClientUpdate {
+	if s != nil {
+		ocu.SetClientRefID(*s)
+	}
+	return ocu
+}
+
 // SetClientID sets the "client_id" field.
 func (ocu *OidcClientUpdate) SetClientID(s string) *OidcClientUpdate {
 	ocu.mutation.SetClientID(s)
@@ -54,20 +82,6 @@ func (ocu *OidcClientUpdate) SetClientID(s string) *OidcClientUpdate {
 func (ocu *OidcClientUpdate) SetNillableClientID(s *string) *OidcClientUpdate {
 	if s != nil {
 		ocu.SetClientID(*s)
-	}
-	return ocu
-}
-
-// SetClientSecret sets the "client_secret" field.
-func (ocu *OidcClientUpdate) SetClientSecret(s string) *OidcClientUpdate {
-	ocu.mutation.SetClientSecret(s)
-	return ocu
-}
-
-// SetNillableClientSecret sets the "client_secret" field if the given value is not nil.
-func (ocu *OidcClientUpdate) SetNillableClientSecret(s *string) *OidcClientUpdate {
-	if s != nil {
-		ocu.SetClientSecret(*s)
 	}
 	return ocu
 }
@@ -143,14 +157,19 @@ func (ocu *OidcClientUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "OidcClient.name": %w`, err)}
 		}
 	}
+	if v, ok := ocu.mutation.Audience(); ok {
+		if err := oidcclient.AudienceValidator(v); err != nil {
+			return &ValidationError{Name: "audience", err: fmt.Errorf(`ent: validator failed for field "OidcClient.audience": %w`, err)}
+		}
+	}
+	if v, ok := ocu.mutation.ClientRefID(); ok {
+		if err := oidcclient.ClientRefIDValidator(v); err != nil {
+			return &ValidationError{Name: "client_ref_id", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_ref_id": %w`, err)}
+		}
+	}
 	if v, ok := ocu.mutation.ClientID(); ok {
 		if err := oidcclient.ClientIDValidator(v); err != nil {
 			return &ValidationError{Name: "client_id", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_id": %w`, err)}
-		}
-	}
-	if v, ok := ocu.mutation.ClientSecret(); ok {
-		if err := oidcclient.ClientSecretValidator(v); err != nil {
-			return &ValidationError{Name: "client_secret", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_secret": %w`, err)}
 		}
 	}
 	if ocu.mutation.ProjectCleared() && len(ocu.mutation.ProjectIDs()) > 0 {
@@ -174,11 +193,14 @@ func (ocu *OidcClientUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ocu.mutation.Name(); ok {
 		_spec.SetField(oidcclient.FieldName, field.TypeString, value)
 	}
+	if value, ok := ocu.mutation.Audience(); ok {
+		_spec.SetField(oidcclient.FieldAudience, field.TypeString, value)
+	}
+	if value, ok := ocu.mutation.ClientRefID(); ok {
+		_spec.SetField(oidcclient.FieldClientRefID, field.TypeString, value)
+	}
 	if value, ok := ocu.mutation.ClientID(); ok {
 		_spec.SetField(oidcclient.FieldClientID, field.TypeString, value)
-	}
-	if value, ok := ocu.mutation.ClientSecret(); ok {
-		_spec.SetField(oidcclient.FieldClientSecret, field.TypeString, value)
 	}
 	if value, ok := ocu.mutation.UpdatedAt(); ok {
 		_spec.SetField(oidcclient.FieldUpdatedAt, field.TypeTime, value)
@@ -246,6 +268,34 @@ func (ocuo *OidcClientUpdateOne) SetNillableName(s *string) *OidcClientUpdateOne
 	return ocuo
 }
 
+// SetAudience sets the "audience" field.
+func (ocuo *OidcClientUpdateOne) SetAudience(s string) *OidcClientUpdateOne {
+	ocuo.mutation.SetAudience(s)
+	return ocuo
+}
+
+// SetNillableAudience sets the "audience" field if the given value is not nil.
+func (ocuo *OidcClientUpdateOne) SetNillableAudience(s *string) *OidcClientUpdateOne {
+	if s != nil {
+		ocuo.SetAudience(*s)
+	}
+	return ocuo
+}
+
+// SetClientRefID sets the "client_ref_id" field.
+func (ocuo *OidcClientUpdateOne) SetClientRefID(s string) *OidcClientUpdateOne {
+	ocuo.mutation.SetClientRefID(s)
+	return ocuo
+}
+
+// SetNillableClientRefID sets the "client_ref_id" field if the given value is not nil.
+func (ocuo *OidcClientUpdateOne) SetNillableClientRefID(s *string) *OidcClientUpdateOne {
+	if s != nil {
+		ocuo.SetClientRefID(*s)
+	}
+	return ocuo
+}
+
 // SetClientID sets the "client_id" field.
 func (ocuo *OidcClientUpdateOne) SetClientID(s string) *OidcClientUpdateOne {
 	ocuo.mutation.SetClientID(s)
@@ -256,20 +306,6 @@ func (ocuo *OidcClientUpdateOne) SetClientID(s string) *OidcClientUpdateOne {
 func (ocuo *OidcClientUpdateOne) SetNillableClientID(s *string) *OidcClientUpdateOne {
 	if s != nil {
 		ocuo.SetClientID(*s)
-	}
-	return ocuo
-}
-
-// SetClientSecret sets the "client_secret" field.
-func (ocuo *OidcClientUpdateOne) SetClientSecret(s string) *OidcClientUpdateOne {
-	ocuo.mutation.SetClientSecret(s)
-	return ocuo
-}
-
-// SetNillableClientSecret sets the "client_secret" field if the given value is not nil.
-func (ocuo *OidcClientUpdateOne) SetNillableClientSecret(s *string) *OidcClientUpdateOne {
-	if s != nil {
-		ocuo.SetClientSecret(*s)
 	}
 	return ocuo
 }
@@ -358,14 +394,19 @@ func (ocuo *OidcClientUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "OidcClient.name": %w`, err)}
 		}
 	}
+	if v, ok := ocuo.mutation.Audience(); ok {
+		if err := oidcclient.AudienceValidator(v); err != nil {
+			return &ValidationError{Name: "audience", err: fmt.Errorf(`ent: validator failed for field "OidcClient.audience": %w`, err)}
+		}
+	}
+	if v, ok := ocuo.mutation.ClientRefID(); ok {
+		if err := oidcclient.ClientRefIDValidator(v); err != nil {
+			return &ValidationError{Name: "client_ref_id", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_ref_id": %w`, err)}
+		}
+	}
 	if v, ok := ocuo.mutation.ClientID(); ok {
 		if err := oidcclient.ClientIDValidator(v); err != nil {
 			return &ValidationError{Name: "client_id", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_id": %w`, err)}
-		}
-	}
-	if v, ok := ocuo.mutation.ClientSecret(); ok {
-		if err := oidcclient.ClientSecretValidator(v); err != nil {
-			return &ValidationError{Name: "client_secret", err: fmt.Errorf(`ent: validator failed for field "OidcClient.client_secret": %w`, err)}
 		}
 	}
 	if ocuo.mutation.ProjectCleared() && len(ocuo.mutation.ProjectIDs()) > 0 {
@@ -406,11 +447,14 @@ func (ocuo *OidcClientUpdateOne) sqlSave(ctx context.Context) (_node *OidcClient
 	if value, ok := ocuo.mutation.Name(); ok {
 		_spec.SetField(oidcclient.FieldName, field.TypeString, value)
 	}
+	if value, ok := ocuo.mutation.Audience(); ok {
+		_spec.SetField(oidcclient.FieldAudience, field.TypeString, value)
+	}
+	if value, ok := ocuo.mutation.ClientRefID(); ok {
+		_spec.SetField(oidcclient.FieldClientRefID, field.TypeString, value)
+	}
 	if value, ok := ocuo.mutation.ClientID(); ok {
 		_spec.SetField(oidcclient.FieldClientID, field.TypeString, value)
-	}
-	if value, ok := ocuo.mutation.ClientSecret(); ok {
-		_spec.SetField(oidcclient.FieldClientSecret, field.TypeString, value)
 	}
 	if value, ok := ocuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(oidcclient.FieldUpdatedAt, field.TypeTime, value)

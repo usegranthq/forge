@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/usegranthq/backend/ent/oidcclient"
 	"github.com/usegranthq/backend/ent/project"
+	"github.com/usegranthq/backend/ent/projectdomain"
 	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
@@ -33,6 +34,8 @@ type Client struct {
 	OidcClient *OidcClientClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
+	// ProjectDomain is the client for interacting with the ProjectDomain builders.
+	ProjectDomain *ProjectDomainClient
 	// Token is the client for interacting with the Token builders.
 	Token *TokenClient
 	// User is the client for interacting with the User builders.
@@ -54,6 +57,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.OidcClient = NewOidcClientClient(c.config)
 	c.Project = NewProjectClient(c.config)
+	c.ProjectDomain = NewProjectDomainClient(c.config)
 	c.Token = NewTokenClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserSession = NewUserSessionClient(c.config)
@@ -152,6 +156,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:           cfg,
 		OidcClient:       NewOidcClientClient(cfg),
 		Project:          NewProjectClient(cfg),
+		ProjectDomain:    NewProjectDomainClient(cfg),
 		Token:            NewTokenClient(cfg),
 		User:             NewUserClient(cfg),
 		UserSession:      NewUserSessionClient(cfg),
@@ -177,6 +182,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:           cfg,
 		OidcClient:       NewOidcClientClient(cfg),
 		Project:          NewProjectClient(cfg),
+		ProjectDomain:    NewProjectDomainClient(cfg),
 		Token:            NewTokenClient(cfg),
 		User:             NewUserClient(cfg),
 		UserSession:      NewUserSessionClient(cfg),
@@ -210,7 +216,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.OidcClient, c.Project, c.Token, c.User, c.UserSession, c.UserVerification,
+		c.OidcClient, c.Project, c.ProjectDomain, c.Token, c.User, c.UserSession,
+		c.UserVerification,
 	} {
 		n.Use(hooks...)
 	}
@@ -220,7 +227,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.OidcClient, c.Project, c.Token, c.User, c.UserSession, c.UserVerification,
+		c.OidcClient, c.Project, c.ProjectDomain, c.Token, c.User, c.UserSession,
+		c.UserVerification,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -233,6 +241,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OidcClient.mutate(ctx, m)
 	case *ProjectMutation:
 		return c.Project.mutate(ctx, m)
+	case *ProjectDomainMutation:
+		return c.ProjectDomain.mutate(ctx, m)
 	case *TokenMutation:
 		return c.Token.mutate(ctx, m)
 	case *UserMutation:
@@ -519,6 +529,22 @@ func (c *ProjectClient) QueryUser(pr *Project) *UserQuery {
 	return query
 }
 
+// QueryDomain queries the domain edge of a Project.
+func (c *ProjectClient) QueryDomain(pr *Project) *ProjectDomainQuery {
+	query := (&ProjectDomainClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(projectdomain.Table, projectdomain.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.DomainTable, project.DomainColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryOidcClients queries the oidc_clients edge of a Project.
 func (c *ProjectClient) QueryOidcClients(pr *Project) *OidcClientQuery {
 	query := (&OidcClientClient{config: c.config}).Query()
@@ -557,6 +583,155 @@ func (c *ProjectClient) mutate(ctx context.Context, m *ProjectMutation) (Value, 
 		return (&ProjectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Project mutation op: %q", m.Op())
+	}
+}
+
+// ProjectDomainClient is a client for the ProjectDomain schema.
+type ProjectDomainClient struct {
+	config
+}
+
+// NewProjectDomainClient returns a client for the ProjectDomain from the given config.
+func NewProjectDomainClient(c config) *ProjectDomainClient {
+	return &ProjectDomainClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `projectdomain.Hooks(f(g(h())))`.
+func (c *ProjectDomainClient) Use(hooks ...Hook) {
+	c.hooks.ProjectDomain = append(c.hooks.ProjectDomain, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `projectdomain.Intercept(f(g(h())))`.
+func (c *ProjectDomainClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProjectDomain = append(c.inters.ProjectDomain, interceptors...)
+}
+
+// Create returns a builder for creating a ProjectDomain entity.
+func (c *ProjectDomainClient) Create() *ProjectDomainCreate {
+	mutation := newProjectDomainMutation(c.config, OpCreate)
+	return &ProjectDomainCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProjectDomain entities.
+func (c *ProjectDomainClient) CreateBulk(builders ...*ProjectDomainCreate) *ProjectDomainCreateBulk {
+	return &ProjectDomainCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProjectDomainClient) MapCreateBulk(slice any, setFunc func(*ProjectDomainCreate, int)) *ProjectDomainCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProjectDomainCreateBulk{err: fmt.Errorf("calling to ProjectDomainClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProjectDomainCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProjectDomainCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProjectDomain.
+func (c *ProjectDomainClient) Update() *ProjectDomainUpdate {
+	mutation := newProjectDomainMutation(c.config, OpUpdate)
+	return &ProjectDomainUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProjectDomainClient) UpdateOne(pd *ProjectDomain) *ProjectDomainUpdateOne {
+	mutation := newProjectDomainMutation(c.config, OpUpdateOne, withProjectDomain(pd))
+	return &ProjectDomainUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProjectDomainClient) UpdateOneID(id uuid.UUID) *ProjectDomainUpdateOne {
+	mutation := newProjectDomainMutation(c.config, OpUpdateOne, withProjectDomainID(id))
+	return &ProjectDomainUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProjectDomain.
+func (c *ProjectDomainClient) Delete() *ProjectDomainDelete {
+	mutation := newProjectDomainMutation(c.config, OpDelete)
+	return &ProjectDomainDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProjectDomainClient) DeleteOne(pd *ProjectDomain) *ProjectDomainDeleteOne {
+	return c.DeleteOneID(pd.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProjectDomainClient) DeleteOneID(id uuid.UUID) *ProjectDomainDeleteOne {
+	builder := c.Delete().Where(projectdomain.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProjectDomainDeleteOne{builder}
+}
+
+// Query returns a query builder for ProjectDomain.
+func (c *ProjectDomainClient) Query() *ProjectDomainQuery {
+	return &ProjectDomainQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProjectDomain},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProjectDomain entity by its id.
+func (c *ProjectDomainClient) Get(ctx context.Context, id uuid.UUID) (*ProjectDomain, error) {
+	return c.Query().Where(projectdomain.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProjectDomainClient) GetX(ctx context.Context, id uuid.UUID) *ProjectDomain {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProject queries the project edge of a ProjectDomain.
+func (c *ProjectDomainClient) QueryProject(pd *ProjectDomain) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(projectdomain.Table, projectdomain.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, projectdomain.ProjectTable, projectdomain.ProjectColumn),
+		)
+		fromV = sqlgraph.Neighbors(pd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProjectDomainClient) Hooks() []Hook {
+	return c.hooks.ProjectDomain
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProjectDomainClient) Interceptors() []Interceptor {
+	return c.inters.ProjectDomain
+}
+
+func (c *ProjectDomainClient) mutate(ctx context.Context, m *ProjectDomainMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProjectDomainCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProjectDomainUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProjectDomainUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProjectDomainDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProjectDomain mutation op: %q", m.Op())
 	}
 }
 
@@ -1207,10 +1382,11 @@ func (c *UserVerificationClient) mutate(ctx context.Context, m *UserVerification
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		OidcClient, Project, Token, User, UserSession, UserVerification []ent.Hook
+		OidcClient, Project, ProjectDomain, Token, User, UserSession,
+		UserVerification []ent.Hook
 	}
 	inters struct {
-		OidcClient, Project, Token, User, UserSession,
+		OidcClient, Project, ProjectDomain, Token, User, UserSession,
 		UserVerification []ent.Interceptor
 	}
 )

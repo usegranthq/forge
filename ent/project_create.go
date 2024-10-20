@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/usegranthq/backend/ent/oidcclient"
 	"github.com/usegranthq/backend/ent/project"
+	"github.com/usegranthq/backend/ent/projectdomain"
 	"github.com/usegranthq/backend/ent/user"
 )
 
@@ -103,6 +104,21 @@ func (pc *ProjectCreate) SetUserID(id uuid.UUID) *ProjectCreate {
 // SetUser sets the "user" edge to the User entity.
 func (pc *ProjectCreate) SetUser(u *User) *ProjectCreate {
 	return pc.SetUserID(u.ID)
+}
+
+// AddDomainIDs adds the "domain" edge to the ProjectDomain entity by IDs.
+func (pc *ProjectCreate) AddDomainIDs(ids ...uuid.UUID) *ProjectCreate {
+	pc.mutation.AddDomainIDs(ids...)
+	return pc
+}
+
+// AddDomain adds the "domain" edges to the ProjectDomain entity.
+func (pc *ProjectCreate) AddDomain(p ...*ProjectDomain) *ProjectCreate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pc.AddDomainIDs(ids...)
 }
 
 // AddOidcClientIDs adds the "oidc_clients" edge to the OidcClient entity by IDs.
@@ -267,6 +283,22 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_projects = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.DomainIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.DomainTable,
+			Columns: []string{project.DomainColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(projectdomain.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.mutation.OidcClientsIDs(); len(nodes) > 0 {

@@ -40,11 +40,13 @@ type Project struct {
 type ProjectEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
+	// Domain holds the value of the domain edge.
+	Domain []*ProjectDomain `json:"domain,omitempty"`
 	// OidcClients holds the value of the oidc_clients edge.
 	OidcClients []*OidcClient `json:"oidc_clients,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -58,10 +60,19 @@ func (e ProjectEdges) UserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "user"}
 }
 
+// DomainOrErr returns the Domain value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) DomainOrErr() ([]*ProjectDomain, error) {
+	if e.loadedTypes[1] {
+		return e.Domain, nil
+	}
+	return nil, &NotLoadedError{edge: "domain"}
+}
+
 // OidcClientsOrErr returns the OidcClients value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) OidcClientsOrErr() ([]*OidcClient, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.OidcClients, nil
 	}
 	return nil, &NotLoadedError{edge: "oidc_clients"}
@@ -154,6 +165,11 @@ func (pr *Project) Value(name string) (ent.Value, error) {
 // QueryUser queries the "user" edge of the Project entity.
 func (pr *Project) QueryUser() *UserQuery {
 	return NewProjectClient(pr.config).QueryUser(pr)
+}
+
+// QueryDomain queries the "domain" edge of the Project entity.
+func (pr *Project) QueryDomain() *ProjectDomainQuery {
+	return NewProjectClient(pr.config).QueryDomain(pr)
 }
 
 // QueryOidcClients queries the "oidc_clients" edge of the Project entity.

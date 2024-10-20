@@ -27,6 +27,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeDomain holds the string denoting the domain edge name in mutations.
+	EdgeDomain = "domain"
 	// EdgeOidcClients holds the string denoting the oidc_clients edge name in mutations.
 	EdgeOidcClients = "oidc_clients"
 	// Table holds the table name of the project in the database.
@@ -38,6 +40,13 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_projects"
+	// DomainTable is the table that holds the domain relation/edge.
+	DomainTable = "project_domains"
+	// DomainInverseTable is the table name for the ProjectDomain entity.
+	// It exists in this package in order to avoid circular dependency with the "projectdomain" package.
+	DomainInverseTable = "project_domains"
+	// DomainColumn is the table column denoting the domain relation/edge.
+	DomainColumn = "project_domain"
 	// OidcClientsTable is the table that holds the oidc_clients relation/edge.
 	OidcClientsTable = "oidc_clients"
 	// OidcClientsInverseTable is the table name for the OidcClient entity.
@@ -133,6 +142,20 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByDomainCount orders the results by domain count.
+func ByDomainCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDomainStep(), opts...)
+	}
+}
+
+// ByDomain orders the results by domain terms.
+func ByDomain(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDomainStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOidcClientsCount orders the results by oidc_clients count.
 func ByOidcClientsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -151,6 +174,13 @@ func newUserStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newDomainStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DomainInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DomainTable, DomainColumn),
 	)
 }
 func newOidcClientsStep() *sqlgraph.Step {
