@@ -30,7 +30,7 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Create .pem file
+      - name: Create key file
         run: |
           mkdir -p certs -m 0700
           echo "${{ secrets.EC2_SSH_KEY }}" > certs/ec2_ssh_key
@@ -38,6 +38,9 @@ jobs:
 
       - name: Test ssh connection
         run: ssh -i certs/ec2_ssh_key -T ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
+
+      - name: Install dependencies
+        run: go mod tidy
 
       - name: Create .env file
         uses: actions/github-script@v7
