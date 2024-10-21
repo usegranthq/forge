@@ -7,10 +7,12 @@ import (
 	"github.com/usegranthq/backend/db"
 )
 
+func init() {
+	config.Init()
+}
+
 // setup server using gin
 func main() {
-	config.Init()
-
 	// setup db
 	db.Connect()
 
