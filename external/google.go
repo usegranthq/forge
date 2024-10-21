@@ -18,7 +18,7 @@ type googleExternal struct {
 var Google = googleExternal{}
 var googleOauthConfig *oauth2.Config
 
-func init() {
+func (g *googleExternal) Init() {
 	googleOauthConfig = &oauth2.Config{
 		ClientID:     config.Get("GOOGLE_OAUTH_CLIENT_ID"),     // Replace with your Google client ID
 		ClientSecret: config.Get("GOOGLE_OAUTH_CLIENT_SECRET"), // Replace with your Google client secret

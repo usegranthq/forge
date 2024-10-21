@@ -106,7 +106,7 @@ func CreateUserSession(c *gin.Context, user *ent.User) {
 }
 
 func DoSignup(c *gin.Context, email string) error {
-	if utils.IsDisposableEmail(email) {
+	if utils.Emails.IsDisposableEmail(email) {
 		utils.HttpError.BadRequest(c, "Disposable emails are not allowed. Note: when you delete your account, we delete everything without a trace.")
 		return errors.New("disposable email not allowed")
 	}

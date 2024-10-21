@@ -18,7 +18,7 @@ type githubExternal struct {
 var Github = githubExternal{}
 var githubOauthConfig *oauth2.Config
 
-func init() {
+func (g *githubExternal) Init() {
 	githubOauthConfig = &oauth2.Config{
 		ClientID:     config.Get("GITHUB_OAUTH_CLIENT_ID"),                 // Replace with your GitHub client ID
 		ClientSecret: config.Get("GITHUB_OAUTH_CLIENT_SECRET"),             // Replace with your GitHub client secret

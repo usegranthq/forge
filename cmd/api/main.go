@@ -5,14 +5,20 @@ import (
 	"github.com/usegranthq/backend/api"
 	"github.com/usegranthq/backend/config"
 	"github.com/usegranthq/backend/db"
+	"github.com/usegranthq/backend/external"
+	"github.com/usegranthq/backend/utils"
 )
 
-func init() {
+func initDependencies() {
 	config.Init()
+	external.Init()
+	utils.Init()
 }
 
 // setup server using gin
 func main() {
+	initDependencies()
+
 	// setup db
 	db.Connect()
 
