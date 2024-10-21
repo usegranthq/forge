@@ -18,6 +18,9 @@ APPS_HOME = /home/${EC2_USER}/apps/
 REMOTE_APP_DIR = ${APPS_HOME}${SERVICE_NAME}/
 REMOTE_DEPLOY_PATH=${REMOTE_APP_DIR}tmp/
 
+DEPLOY_SCRIPT_NAME = deploy.sh
+DEPLOY_SCRIPT_PATH = shell/${DEPLOY_SCRIPT_NAME}
+
 dev:
 	docker compose up --build
 
@@ -50,5 +53,5 @@ deploy:
 		scp ${EC2_CERT_OPT} .deploy/.env ${EC2_USER}@${EC2_HOST}:${REMOTE_APP_DIR}; \
 	fi
 	scp ${EC2_CERT_OPT} ${OUT_BINARY_PATH} ${EC2_USER}@${EC2_HOST}:${REMOTE_DEPLOY_PATH}
-	scp ${EC2_CERT_OPT} shell/ec2-deploy.sh ${EC2_USER}@${EC2_HOST}:${APPS_HOME}
-	ssh ${EC2_CERT_OPT} ${EC2_USER}@${EC2_HOST} "bash ${APPS_HOME}ec2-deploy.sh"
+	scp ${EC2_CERT_OPT} ${DEPLOY_SCRIPT_PATH} ${EC2_USER}@${EC2_HOST}:${REMOTE_APP_DIR}
+	ssh ${EC2_CERT_OPT} ${EC2_USER}@${EC2_HOST} "bash ${REMOTE_APP_DIR}${DEPLOY_SCRIPT_NAME}"
