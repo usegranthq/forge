@@ -46,7 +46,7 @@ ssh:
 
 build:
 	@echo "Building the application..."
-	GOOS=linux GOARCH=amd64 go build -o ${OUT_BINARY_PATH} ./cmd/api -ldflags "-w -s"
+	GOOS=linux GOARCH=amd64 go build -ldflags "-w -s" -o ${OUT_BINARY_PATH} ./cmd/api
 	@echo "Build completed."
 
 deploy:
