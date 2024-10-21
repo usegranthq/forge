@@ -45,13 +45,21 @@ ssh:
 	ssh ubuntu@ec2-23-20-111-38.compute-1.amazonaws.com
 
 build:
+	@echo "Building the application..."
 	GOOS=linux GOARCH=amd64 go build -o ${OUT_BINARY_PATH} ./cmd/api
+	@echo "Build completed."
 
 deploy:
+	@echo "Starting deployment..."
 	make build
 	@if [ -f .deploy/.env ]; then \
+		echo "Copying .env file to remote server..."; \
 		scp ${EC2_CERT_OPT} .deploy/.env ${EC2_USER}@${EC2_HOST}:${REMOTE_APP_DIR}; \
 	fi
+	@echo "Copying binary to remote server..."
 	scp ${EC2_CERT_OPT} ${OUT_BINARY_PATH} ${EC2_USER}@${EC2_HOST}:${REMOTE_DEPLOY_PATH}
+	@echo "Copying deploy script to remote server..."
 	scp ${EC2_CERT_OPT} ${DEPLOY_SCRIPT_PATH} ${EC2_USER}@${EC2_HOST}:${REMOTE_APP_DIR}
+	@echo "Running deploy script on remote server..."
 	ssh ${EC2_CERT_OPT} ${EC2_USER}@${EC2_HOST} "bash ${REMOTE_APP_DIR}${DEPLOY_SCRIPT_NAME}"
+	@echo "Deployment completed."
