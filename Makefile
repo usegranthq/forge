@@ -57,9 +57,9 @@ deploy:
 		scp ${EC2_CERT_OPT} .deploy/.env ${EC2_USER}@${EC2_HOST}:${REMOTE_APP_DIR}; \
 	fi
 	@echo "Copying binary to remote server..."
-	scp ${EC2_CERT_OPT} ${OUT_BINARY_PATH} ${EC2_USER}@${EC2_HOST}:${REMOTE_DEPLOY_PATH}
+	rsync -avzP -e "ssh ${EC2_CERT_OPT}" ${OUT_BINARY_PATH} ${EC2_USER}@${EC2_HOST}:${REMOTE_DEPLOY_PATH}
 	@echo "Copying deploy script to remote server..."
-	scp ${EC2_CERT_OPT} ${DEPLOY_SCRIPT_PATH} ${EC2_USER}@${EC2_HOST}:${REMOTE_APP_DIR}
+	rsync -avzP -e "ssh ${EC2_CERT_OPT}" ${DEPLOY_SCRIPT_PATH} ${EC2_USER}@${EC2_HOST}:${REMOTE_APP_DIR}
 	@echo "Running deploy script on remote server..."
 	ssh ${EC2_CERT_OPT} ${EC2_USER}@${EC2_HOST} "bash ${REMOTE_APP_DIR}${DEPLOY_SCRIPT_NAME}"
 	@echo "Deployment completed."
