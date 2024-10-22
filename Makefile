@@ -42,7 +42,7 @@ migrate:
 		--dev-url "docker://postgres/16/dev?search_path=public"
 
 ssh:
-	ssh ubuntu@ec2-23-20-111-38.compute-1.amazonaws.com
+	ssh ${EC2_CERT_OPT} ${EC2_USER}@${EC2_HOST}
 
 build:
 	@echo "Building the application..."
