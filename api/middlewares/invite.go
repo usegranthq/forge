@@ -12,13 +12,13 @@ func ValidateInvite() gin.HandlerFunc {
 		// get invite token from cookie
 		inviteToken, err := c.Cookie(constants.InviteCookie)
 		if err != nil {
-			utils.HttpError.Unauthorized(c, "Signup requires invite token")
+			utils.HttpError.Forbidden(c, "Signup requires invite token")
 			c.Abort()
 			return
 		}
 
 		if inviteToken != config.Get("INVITE_SECRET") {
-			utils.HttpError.Unauthorized(c, "Invalid invite token")
+			utils.HttpError.Forbidden(c, "Invalid invite token")
 			c.Abort()
 			return
 		}

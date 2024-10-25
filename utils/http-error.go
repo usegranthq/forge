@@ -68,3 +68,7 @@ func (e *HttpErrorUtil) NotFound(c *gin.Context, message ...string) {
 func (e *HttpErrorUtil) Unauthorized(c *gin.Context, message ...string) {
 	e.respondWithError(c, http.StatusUnauthorized, message...)
 }
+
+func (e *HttpErrorUtil) Forbidden(c *gin.Context, message ...string) {
+	e.respondWithError(c, http.StatusForbidden, message...)
+}
