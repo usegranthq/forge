@@ -58,10 +58,10 @@ func definePublicRoutes(routerGroup *gin.RouterGroup) {
 }
 
 func defineAuthRoutes(routerGroup *gin.RouterGroup) {
-	routerGroup.POST("/signup", auth.Signup)
-	routerGroup.POST("/login", auth.Login)
-	routerGroup.GET("/login/github", auth.GithubLogin)
-	routerGroup.GET("/login/google", auth.GoogleLogin)
+	routerGroup.POST("/signup", middlewares.ValidateInvite(), auth.Signup)
+	routerGroup.POST("/login", middlewares.ValidateInvite(), auth.Login)
+	routerGroup.GET("/login/github", middlewares.ValidateInvite(), auth.GithubLogin)
+	routerGroup.GET("/login/google", middlewares.ValidateInvite(), auth.GoogleLogin)
 	routerGroup.POST("/verify", auth.Verify)
 	routerGroup.POST("/verify/github", auth.VerifyGithub)
 	routerGroup.POST("/verify/google", auth.VerifyGoogle)

@@ -54,6 +54,7 @@ jobs:
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             SERVER_PORT=${{ vars.SERVER_PORT }}
+            INVITE_SECRET=${{ secrets.INVITE_SECRET }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             CLIENT_URL=${{ vars.CLIENT_URL }}
             PROJECT_URL_HASH_SALT=${{ secrets.PROJECT_URL_HASH_SALT }}
