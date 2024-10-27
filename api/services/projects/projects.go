@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
-	"github.com/speps/go-hashids/v2"
+	"github.com/sqids/sqids-go"
 	"github.com/usegranthq/backend/config"
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent"
@@ -56,11 +56,13 @@ func createProjectHandler(c *gin.Context, tx *ent.Tx) error {
 		return err
 	}
 
-	hd := hashids.NewData()
-	hd.Salt = config.Get("PROJECT_URL_HASH_SALT")
-	hd.MinLength = 6
-	hash, _ := hashids.NewWithData(hd)
-	urlUniq, _ := hash.Encode([]int{int(time.Now().Unix())})
+	sqids, _ := sqids.New(
+		sqids.Options{
+			MinLength: 10,
+			Alphabet:  "abcdefghijklmnopqrstuvwxyz1234567890",
+		},
+	)
+	urlUniq, _ := sqids.Encode([]uint64{uint64(time.Now().Unix())})
 	urlID := slug.Make(req.Name) + "-" + urlUniq
 
 	project, err := tx.Project.Create().
