@@ -57,7 +57,6 @@ jobs:
             INVITE_SECRET=${{ secrets.INVITE_SECRET }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             CLIENT_URL=${{ vars.CLIENT_URL }}
-            PROJECT_URL_HASH_SALT=${{ secrets.PROJECT_URL_HASH_SALT }}
             PROJECT_OIDC_DOMAIN=${{ vars.PROJECT_OIDC_DOMAIN }}
             OAUTH_SERVER_URL=${{ vars.OAUTH_SERVER_URL }}
             OAUTH_SERVER_AUTH_TOKEN=${{ secrets.OAUTH_SERVER_AUTH_TOKEN }}
