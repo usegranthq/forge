@@ -12,7 +12,7 @@ require (
 	github.com/gosimple/slug v1.14.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
-	github.com/sibiraj-s/unique-names-generator v0.3.0
+	github.com/sibiraj-s/unique-names-generator v0.4.0
 	github.com/sqids/sqids-go v0.4.1
 	golang.org/x/oauth2 v0.23.0
 	google.golang.org/api v0.201.0
