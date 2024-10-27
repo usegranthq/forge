@@ -77,7 +77,7 @@ func createProjectHandler(c *gin.Context, tx *ent.Tx) error {
 		return err
 	}
 
-	domain := config.Get("PROJECT_OIDC_DOMAIN")
+	domain := config.Get("PROJECT_DEFAULT_DOMAIN")
 	domain = strings.Replace(domain, "<PROJECT_URL_ID>", urlID, 1)
 
 	// register project in oidc provider
