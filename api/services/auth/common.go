@@ -57,10 +57,12 @@ func StartUserVerification(c *gin.Context, user *ent.User) {
 		return
 	}
 
-	if err := external.Postman.SendLoginEmail(c, user.Email, code); err != nil {
-		utils.HttpError.InternalServerError(c)
-		return
-	}
+	utils.SafeRoutine(func() {
+		if err := external.Postman.SendLoginEmail(c, user.Email, code); err != nil {
+			utils.HttpError.InternalServerError(c)
+			return
+		}
+	})
 
 	cookieExpiry := int(attemptExpiry.Sub(time.Now()).Seconds())
 	utils.Http.SetCookie(c, constants.VerifyCookie, token, cookieExpiry)
