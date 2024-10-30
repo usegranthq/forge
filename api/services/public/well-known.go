@@ -64,7 +64,10 @@ func validateProjectUrlID(c *gin.Context) bool {
 
 func WellKnown(c *gin.Context) {
 	if !validateProjectUrlID(c) {
-		fmt.Println("Invalid host:", c.Request.Host)
+		fmt.Println("Invalid Forwarded Host:", c.Request.Header.Get("X-Forwarded-Host"))
+		fmt.Println("ORINGINAL Host:", c.Request.Header.Get("X-ORIGIN-HOST"))
+		fmt.Println("ORIGIN Host:", c.Request.Header.Get("X-Origin-Host"))
+		fmt.Println("Invalid Host:", c.Request.Host)
 		utils.HttpError.InternalServerError(c, "Invalid host")
 		return
 	}
