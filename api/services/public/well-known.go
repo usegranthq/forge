@@ -51,6 +51,9 @@ func getDefaultProjectUrlSuffix() string {
 }
 
 func validateProjectUrlID(c *gin.Context) bool {
+	fmt.Println("Request Host:", c.Request.Host)
+	fmt.Println("Request Header Host:", c.Request.Header.Get("X-Forwarded-Host"))
+
 	host := getHostFromRequest(c.Request)
 	hostname := getHostName(host)
 	fmt.Println("Hostname:", hostname)
