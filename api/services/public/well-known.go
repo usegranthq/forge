@@ -24,6 +24,15 @@ type wellKnownResponse struct {
 	ScopesSupported                  []string `json:"scopes_supported"`
 }
 
+func getHostFromRequest(request *http.Request) string {
+	host := request.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = request.Host
+	}
+
+	return host
+}
+
 func getHostName(host string) string {
 	hostWithOutProtocol := strings.TrimPrefix(host, "https://")
 
@@ -42,8 +51,7 @@ func getDefaultProjectUrlSuffix() string {
 }
 
 func validateProjectUrlID(c *gin.Context) bool {
-	host := c.Request.Host
-
+	host := getHostFromRequest(c.Request)
 	hostname := getHostName(host)
 	projectUrlSuffix := getDefaultProjectUrlSuffix()
 
@@ -64,15 +72,9 @@ func validateProjectUrlID(c *gin.Context) bool {
 
 func WellKnown(c *gin.Context) {
 	if !validateProjectUrlID(c) {
-		fmt.Println("Invalid Forwarded Host:", c.Request.Header.Get("X-Forwarded-Host"))
-		fmt.Println("ORINGINAL Host:", c.Request.Header.Get("X-ORIGIN-HOST"))
-		fmt.Println("ORIGIN Host:", c.Request.Header.Get("X-Origin-Host"))
-		fmt.Println("Invalid Host:", c.Request.Host)
 		utils.HttpError.InternalServerError(c, "Invalid host")
 		return
 	}
-
-	host := getHostName(c.Request.Host)
 
 	var response interface{}
 	err := external.Oidc.Request("GET", "/oauth2/.well-known/openid-configuration", nil, &response)
@@ -81,7 +83,10 @@ func WellKnown(c *gin.Context) {
 		return
 	}
 
-	hostWithProtocol := "https://" + host
+	host := getHostFromRequest(c.Request)
+	hostname := getHostName(host)
+	hostWithProtocol := "https://" + hostname
+
 	c.JSON(http.StatusOK, wellKnownResponse{
 		Issuer:                           hostWithProtocol,
 		JwksUri:                          fmt.Sprintf("%s/.well-known/jwks", hostWithProtocol),
