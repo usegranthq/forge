@@ -64,6 +64,7 @@ func validateProjectUrlID(c *gin.Context) bool {
 
 func WellKnown(c *gin.Context) {
 	if !validateProjectUrlID(c) {
+		fmt.Println("Invalid host:", c.Request.Host)
 		utils.HttpError.InternalServerError(c, "Invalid host")
 		return
 	}
