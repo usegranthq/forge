@@ -53,13 +53,17 @@ func getDefaultProjectUrlSuffix() string {
 func validateProjectUrlID(c *gin.Context) bool {
 	host := getHostFromRequest(c.Request)
 	hostname := getHostName(host)
+	fmt.Println("Hostname:", hostname)
 	projectUrlSuffix := getDefaultProjectUrlSuffix()
+	fmt.Println("Project URL Suffix:", projectUrlSuffix)
 
 	if !strings.HasSuffix(hostname, projectUrlSuffix) {
+		fmt.Println("Suffix validation failed")
 		return false
 	}
 
 	projectUrlID := strings.TrimSuffix(hostname, projectUrlSuffix)
+	fmt.Println("Project URL ID:", projectUrlID)
 
 	// check if any project has the host
 	_, err := db.Client.Project.Query().Where(project.URLID(projectUrlID)).First(c)
