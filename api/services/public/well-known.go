@@ -25,7 +25,11 @@ type wellKnownResponse struct {
 }
 
 func getHostFromRequest(request *http.Request) string {
-	host := request.Header.Get("X-Forwarded-Host")
+	host := request.Header.Get("X-UG-Host")
+	if host == "" {
+		host = request.Header.Get("X-Forwarded-For")
+	}
+
 	if host == "" {
 		host = request.Host
 	}
@@ -52,7 +56,8 @@ func getDefaultProjectUrlSuffix() string {
 
 func validateProjectUrlID(c *gin.Context) bool {
 	fmt.Println("Request Host:", c.Request.Host)
-	fmt.Println("Request Header Host:", c.Request.Header.Get("X-Forwarded-Host"))
+	fmt.Println("Request Header Host:", c.Request.Header.Get("X-Forwarded-For"))
+	fmt.Println("Request UG Header Host:", c.Request.Header.Get("X-UG-Host"))
 
 	host := getHostFromRequest(c.Request)
 	hostname := getHostName(host)
