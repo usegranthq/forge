@@ -2,6 +2,8 @@ package auth
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -107,7 +109,25 @@ func CreateUserSession(c *gin.Context, user *ent.User) {
 	utils.Http.DeleteCookie(c, constants.VerifyCookie)
 }
 
-func DoSignup(c *gin.Context, email string) error {
+func VerifyCaptcha(c *gin.Context, token string) error {
+	turnstileResponse, err := external.Turnstile.Verify(token)
+
+	if err != nil {
+		utils.HttpError.InternalServerError(c, "Failed to verify captcha")
+		return err
+	}
+
+	if !turnstileResponse.Success {
+		errorCodes := strings.Join(turnstileResponse.ErrorCodes, ", ")
+		errorMessage := fmt.Sprintf("Captcha verification failed: %s", errorCodes)
+		utils.HttpError.BadRequest(c, errorMessage)
+		return errors.New(errorMessage)
+	}
+
+	return nil
+}
+
+func DoEmailSignup(c *gin.Context, email string) error {
 	if utils.Emails.IsDisposableEmail(email) {
 		utils.HttpError.BadRequest(c, "Disposable emails are not allowed. Note: when you delete your account, we delete everything without a trace.")
 		return errors.New("disposable email not allowed")

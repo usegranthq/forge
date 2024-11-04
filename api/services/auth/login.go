@@ -12,13 +12,18 @@ import (
 )
 
 type loginRequest struct {
-	Email string `json:"email" binding:"required"`
+	Email   string `json:"email" binding:"required"`
+	CfToken string `json:"cf_token" binding:"required"`
 }
 
 func Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.HttpError.BadRequest(c, err.Error())
+		return
+	}
+
+	if err := VerifyCaptcha(c, req.CfToken); err != nil {
 		return
 	}
 
@@ -31,7 +36,7 @@ func Login(c *gin.Context) {
 
 	if err != nil {
 		if ent.IsNotFound(err) {
-			if err := DoSignup(c, userEmail); err != nil {
+			if err := DoEmailSignup(c, userEmail); err != nil {
 				return
 			}
 			c.JSON(http.StatusCreated, gin.H{})

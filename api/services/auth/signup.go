@@ -8,7 +8,8 @@ import (
 )
 
 type signupRequest struct {
-	Email string `json:"email" binding:"required,email"`
+	Email   string `json:"email" binding:"required,email"`
+	CfToken string `json:"cf_token" binding:"required"`
 }
 
 func Signup(c *gin.Context) {
@@ -18,8 +19,13 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	if err := DoSignup(c, req.Email); err != nil {
+	if err := VerifyCaptcha(c, req.CfToken); err != nil {
 		return
 	}
+
+	if err := DoEmailSignup(c, req.Email); err != nil {
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{})
 }
