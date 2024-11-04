@@ -68,6 +68,7 @@ jobs:
             GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
             GOOGLE_OAUTH_CLIENT_SECRET=${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
             GOOGLE_HMAC_SECRET_KEY=${{ secrets.GOOGLE_HMAC_SECRET_KEY }}
+            TURNSTILE_SECRET_KEY=${{ secrets.TURNSTILE_SECRET_KEY }}
 
       - name: Build, deploy and restart server
         env:
