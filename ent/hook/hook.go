@@ -81,16 +81,16 @@ func (f UserSessionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserSessionMutation", m)
 }
 
-// The UserVerificationFunc type is an adapter to allow the use of ordinary
-// function as UserVerification mutator.
-type UserVerificationFunc func(context.Context, *ent.UserVerificationMutation) (ent.Value, error)
+// The VerificationFunc type is an adapter to allow the use of ordinary
+// function as Verification mutator.
+type VerificationFunc func(context.Context, *ent.VerificationMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f UserVerificationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.UserVerificationMutation); ok {
+func (f VerificationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.VerificationMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserVerificationMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VerificationMutation", m)
 }
 
 // Condition is a hook condition function.

@@ -24,5 +24,5 @@ type User func(*sql.Selector)
 // UserSession is the predicate function for usersession builders.
 type UserSession func(*sql.Selector)
 
-// UserVerification is the predicate function for userverification builders.
-type UserVerification func(*sql.Selector)
+// Verification is the predicate function for verification builders.
+type Verification func(*sql.Selector)

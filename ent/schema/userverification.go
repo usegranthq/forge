@@ -9,16 +9,17 @@ import (
 	"github.com/google/uuid"
 )
 
-// UserVerification holds the schema definition for the UserVerification entity.
-type UserVerification struct {
+// Verification holds the schema definition for the Verification entity.
+type Verification struct {
 	ent.Schema
 }
 
 // Fields of the UserVerification.
-func (UserVerification) Fields() []ent.Field {
+func (Verification) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
 		field.UUID("attempt_id", uuid.UUID{}).Default(uuid.New).Immutable(),
+		field.Enum("type").Values("SIGNUP", "EMAIL_UPDATE"),
 		field.String("code").NotEmpty(),
 		field.Int("attempts").Default(0),
 		field.Time("expires_at"),
@@ -28,10 +29,10 @@ func (UserVerification) Fields() []ent.Field {
 }
 
 // Edges of the UserVerification.
-func (UserVerification) Edges() []ent.Edge {
+func (Verification) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).
-			Ref("user_verifications").
+			Ref("verifications").
 			Unique().
 			Required(),
 	}

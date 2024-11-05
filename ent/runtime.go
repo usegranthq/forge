@@ -13,7 +13,7 @@ import (
 	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
-	"github.com/usegranthq/backend/ent/userverification"
+	"github.com/usegranthq/backend/ent/verification"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -168,32 +168,32 @@ func init() {
 	usersessionDescID := usersessionFields[0].Descriptor()
 	// usersession.DefaultID holds the default value on creation for the id field.
 	usersession.DefaultID = usersessionDescID.Default.(func() uuid.UUID)
-	userverificationFields := schema.UserVerification{}.Fields()
-	_ = userverificationFields
-	// userverificationDescAttemptID is the schema descriptor for attempt_id field.
-	userverificationDescAttemptID := userverificationFields[1].Descriptor()
-	// userverification.DefaultAttemptID holds the default value on creation for the attempt_id field.
-	userverification.DefaultAttemptID = userverificationDescAttemptID.Default.(func() uuid.UUID)
-	// userverificationDescCode is the schema descriptor for code field.
-	userverificationDescCode := userverificationFields[2].Descriptor()
-	// userverification.CodeValidator is a validator for the "code" field. It is called by the builders before save.
-	userverification.CodeValidator = userverificationDescCode.Validators[0].(func(string) error)
-	// userverificationDescAttempts is the schema descriptor for attempts field.
-	userverificationDescAttempts := userverificationFields[3].Descriptor()
-	// userverification.DefaultAttempts holds the default value on creation for the attempts field.
-	userverification.DefaultAttempts = userverificationDescAttempts.Default.(int)
-	// userverificationDescCreatedAt is the schema descriptor for created_at field.
-	userverificationDescCreatedAt := userverificationFields[5].Descriptor()
-	// userverification.DefaultCreatedAt holds the default value on creation for the created_at field.
-	userverification.DefaultCreatedAt = userverificationDescCreatedAt.Default.(func() time.Time)
-	// userverificationDescUpdatedAt is the schema descriptor for updated_at field.
-	userverificationDescUpdatedAt := userverificationFields[6].Descriptor()
-	// userverification.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	userverification.DefaultUpdatedAt = userverificationDescUpdatedAt.Default.(func() time.Time)
-	// userverification.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	userverification.UpdateDefaultUpdatedAt = userverificationDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// userverificationDescID is the schema descriptor for id field.
-	userverificationDescID := userverificationFields[0].Descriptor()
-	// userverification.DefaultID holds the default value on creation for the id field.
-	userverification.DefaultID = userverificationDescID.Default.(func() uuid.UUID)
+	verificationFields := schema.Verification{}.Fields()
+	_ = verificationFields
+	// verificationDescAttemptID is the schema descriptor for attempt_id field.
+	verificationDescAttemptID := verificationFields[1].Descriptor()
+	// verification.DefaultAttemptID holds the default value on creation for the attempt_id field.
+	verification.DefaultAttemptID = verificationDescAttemptID.Default.(func() uuid.UUID)
+	// verificationDescCode is the schema descriptor for code field.
+	verificationDescCode := verificationFields[3].Descriptor()
+	// verification.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	verification.CodeValidator = verificationDescCode.Validators[0].(func(string) error)
+	// verificationDescAttempts is the schema descriptor for attempts field.
+	verificationDescAttempts := verificationFields[4].Descriptor()
+	// verification.DefaultAttempts holds the default value on creation for the attempts field.
+	verification.DefaultAttempts = verificationDescAttempts.Default.(int)
+	// verificationDescCreatedAt is the schema descriptor for created_at field.
+	verificationDescCreatedAt := verificationFields[6].Descriptor()
+	// verification.DefaultCreatedAt holds the default value on creation for the created_at field.
+	verification.DefaultCreatedAt = verificationDescCreatedAt.Default.(func() time.Time)
+	// verificationDescUpdatedAt is the schema descriptor for updated_at field.
+	verificationDescUpdatedAt := verificationFields[7].Descriptor()
+	// verification.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	verification.DefaultUpdatedAt = verificationDescUpdatedAt.Default.(func() time.Time)
+	// verification.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	verification.UpdateDefaultUpdatedAt = verificationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// verificationDescID is the schema descriptor for id field.
+	verificationDescID := verificationFields[0].Descriptor()
+	// verification.DefaultID holds the default value on creation for the id field.
+	verification.DefaultID = verificationDescID.Default.(func() uuid.UUID)
 }

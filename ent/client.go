@@ -22,7 +22,7 @@ import (
 	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
-	"github.com/usegranthq/backend/ent/userverification"
+	"github.com/usegranthq/backend/ent/verification"
 )
 
 // Client is the client that holds all ent builders.
@@ -42,8 +42,8 @@ type Client struct {
 	User *UserClient
 	// UserSession is the client for interacting with the UserSession builders.
 	UserSession *UserSessionClient
-	// UserVerification is the client for interacting with the UserVerification builders.
-	UserVerification *UserVerificationClient
+	// Verification is the client for interacting with the Verification builders.
+	Verification *VerificationClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -61,7 +61,7 @@ func (c *Client) init() {
 	c.Token = NewTokenClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserSession = NewUserSessionClient(c.config)
-	c.UserVerification = NewUserVerificationClient(c.config)
+	c.Verification = NewVerificationClient(c.config)
 }
 
 type (
@@ -152,15 +152,15 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:              ctx,
-		config:           cfg,
-		OidcClient:       NewOidcClientClient(cfg),
-		Project:          NewProjectClient(cfg),
-		ProjectDomain:    NewProjectDomainClient(cfg),
-		Token:            NewTokenClient(cfg),
-		User:             NewUserClient(cfg),
-		UserSession:      NewUserSessionClient(cfg),
-		UserVerification: NewUserVerificationClient(cfg),
+		ctx:           ctx,
+		config:        cfg,
+		OidcClient:    NewOidcClientClient(cfg),
+		Project:       NewProjectClient(cfg),
+		ProjectDomain: NewProjectDomainClient(cfg),
+		Token:         NewTokenClient(cfg),
+		User:          NewUserClient(cfg),
+		UserSession:   NewUserSessionClient(cfg),
+		Verification:  NewVerificationClient(cfg),
 	}, nil
 }
 
@@ -178,15 +178,15 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:              ctx,
-		config:           cfg,
-		OidcClient:       NewOidcClientClient(cfg),
-		Project:          NewProjectClient(cfg),
-		ProjectDomain:    NewProjectDomainClient(cfg),
-		Token:            NewTokenClient(cfg),
-		User:             NewUserClient(cfg),
-		UserSession:      NewUserSessionClient(cfg),
-		UserVerification: NewUserVerificationClient(cfg),
+		ctx:           ctx,
+		config:        cfg,
+		OidcClient:    NewOidcClientClient(cfg),
+		Project:       NewProjectClient(cfg),
+		ProjectDomain: NewProjectDomainClient(cfg),
+		Token:         NewTokenClient(cfg),
+		User:          NewUserClient(cfg),
+		UserSession:   NewUserSessionClient(cfg),
+		Verification:  NewVerificationClient(cfg),
 	}, nil
 }
 
@@ -217,7 +217,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.OidcClient, c.Project, c.ProjectDomain, c.Token, c.User, c.UserSession,
-		c.UserVerification,
+		c.Verification,
 	} {
 		n.Use(hooks...)
 	}
@@ -228,7 +228,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.OidcClient, c.Project, c.ProjectDomain, c.Token, c.User, c.UserSession,
-		c.UserVerification,
+		c.Verification,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -249,8 +249,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	case *UserSessionMutation:
 		return c.UserSession.mutate(ctx, m)
-	case *UserVerificationMutation:
-		return c.UserVerification.mutate(ctx, m)
+	case *VerificationMutation:
+		return c.Verification.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -1024,15 +1024,15 @@ func (c *UserClient) QueryProjects(u *User) *ProjectQuery {
 	return query
 }
 
-// QueryUserVerifications queries the user_verifications edge of a User.
-func (c *UserClient) QueryUserVerifications(u *User) *UserVerificationQuery {
-	query := (&UserVerificationClient{config: c.config}).Query()
+// QueryVerifications queries the verifications edge of a User.
+func (c *UserClient) QueryVerifications(u *User) *VerificationQuery {
+	query := (&VerificationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(userverification.Table, userverification.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.UserVerificationsTable, user.UserVerificationsColumn),
+			sqlgraph.To(verification.Table, verification.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.VerificationsTable, user.VerificationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -1230,107 +1230,107 @@ func (c *UserSessionClient) mutate(ctx context.Context, m *UserSessionMutation) 
 	}
 }
 
-// UserVerificationClient is a client for the UserVerification schema.
-type UserVerificationClient struct {
+// VerificationClient is a client for the Verification schema.
+type VerificationClient struct {
 	config
 }
 
-// NewUserVerificationClient returns a client for the UserVerification from the given config.
-func NewUserVerificationClient(c config) *UserVerificationClient {
-	return &UserVerificationClient{config: c}
+// NewVerificationClient returns a client for the Verification from the given config.
+func NewVerificationClient(c config) *VerificationClient {
+	return &VerificationClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `userverification.Hooks(f(g(h())))`.
-func (c *UserVerificationClient) Use(hooks ...Hook) {
-	c.hooks.UserVerification = append(c.hooks.UserVerification, hooks...)
+// A call to `Use(f, g, h)` equals to `verification.Hooks(f(g(h())))`.
+func (c *VerificationClient) Use(hooks ...Hook) {
+	c.hooks.Verification = append(c.hooks.Verification, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `userverification.Intercept(f(g(h())))`.
-func (c *UserVerificationClient) Intercept(interceptors ...Interceptor) {
-	c.inters.UserVerification = append(c.inters.UserVerification, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `verification.Intercept(f(g(h())))`.
+func (c *VerificationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Verification = append(c.inters.Verification, interceptors...)
 }
 
-// Create returns a builder for creating a UserVerification entity.
-func (c *UserVerificationClient) Create() *UserVerificationCreate {
-	mutation := newUserVerificationMutation(c.config, OpCreate)
-	return &UserVerificationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a Verification entity.
+func (c *VerificationClient) Create() *VerificationCreate {
+	mutation := newVerificationMutation(c.config, OpCreate)
+	return &VerificationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of UserVerification entities.
-func (c *UserVerificationClient) CreateBulk(builders ...*UserVerificationCreate) *UserVerificationCreateBulk {
-	return &UserVerificationCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Verification entities.
+func (c *VerificationClient) CreateBulk(builders ...*VerificationCreate) *VerificationCreateBulk {
+	return &VerificationCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *UserVerificationClient) MapCreateBulk(slice any, setFunc func(*UserVerificationCreate, int)) *UserVerificationCreateBulk {
+func (c *VerificationClient) MapCreateBulk(slice any, setFunc func(*VerificationCreate, int)) *VerificationCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &UserVerificationCreateBulk{err: fmt.Errorf("calling to UserVerificationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &VerificationCreateBulk{err: fmt.Errorf("calling to VerificationClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*UserVerificationCreate, rv.Len())
+	builders := make([]*VerificationCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &UserVerificationCreateBulk{config: c.config, builders: builders}
+	return &VerificationCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for UserVerification.
-func (c *UserVerificationClient) Update() *UserVerificationUpdate {
-	mutation := newUserVerificationMutation(c.config, OpUpdate)
-	return &UserVerificationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Verification.
+func (c *VerificationClient) Update() *VerificationUpdate {
+	mutation := newVerificationMutation(c.config, OpUpdate)
+	return &VerificationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *UserVerificationClient) UpdateOne(uv *UserVerification) *UserVerificationUpdateOne {
-	mutation := newUserVerificationMutation(c.config, OpUpdateOne, withUserVerification(uv))
-	return &UserVerificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *VerificationClient) UpdateOne(v *Verification) *VerificationUpdateOne {
+	mutation := newVerificationMutation(c.config, OpUpdateOne, withVerification(v))
+	return &VerificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UserVerificationClient) UpdateOneID(id uuid.UUID) *UserVerificationUpdateOne {
-	mutation := newUserVerificationMutation(c.config, OpUpdateOne, withUserVerificationID(id))
-	return &UserVerificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *VerificationClient) UpdateOneID(id uuid.UUID) *VerificationUpdateOne {
+	mutation := newVerificationMutation(c.config, OpUpdateOne, withVerificationID(id))
+	return &VerificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for UserVerification.
-func (c *UserVerificationClient) Delete() *UserVerificationDelete {
-	mutation := newUserVerificationMutation(c.config, OpDelete)
-	return &UserVerificationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Verification.
+func (c *VerificationClient) Delete() *VerificationDelete {
+	mutation := newVerificationMutation(c.config, OpDelete)
+	return &VerificationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *UserVerificationClient) DeleteOne(uv *UserVerification) *UserVerificationDeleteOne {
-	return c.DeleteOneID(uv.ID)
+func (c *VerificationClient) DeleteOne(v *Verification) *VerificationDeleteOne {
+	return c.DeleteOneID(v.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UserVerificationClient) DeleteOneID(id uuid.UUID) *UserVerificationDeleteOne {
-	builder := c.Delete().Where(userverification.ID(id))
+func (c *VerificationClient) DeleteOneID(id uuid.UUID) *VerificationDeleteOne {
+	builder := c.Delete().Where(verification.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &UserVerificationDeleteOne{builder}
+	return &VerificationDeleteOne{builder}
 }
 
-// Query returns a query builder for UserVerification.
-func (c *UserVerificationClient) Query() *UserVerificationQuery {
-	return &UserVerificationQuery{
+// Query returns a query builder for Verification.
+func (c *VerificationClient) Query() *VerificationQuery {
+	return &VerificationQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeUserVerification},
+		ctx:    &QueryContext{Type: TypeVerification},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a UserVerification entity by its id.
-func (c *UserVerificationClient) Get(ctx context.Context, id uuid.UUID) (*UserVerification, error) {
-	return c.Query().Where(userverification.ID(id)).Only(ctx)
+// Get returns a Verification entity by its id.
+func (c *VerificationClient) Get(ctx context.Context, id uuid.UUID) (*Verification, error) {
+	return c.Query().Where(verification.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UserVerificationClient) GetX(ctx context.Context, id uuid.UUID) *UserVerification {
+func (c *VerificationClient) GetX(ctx context.Context, id uuid.UUID) *Verification {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1338,44 +1338,44 @@ func (c *UserVerificationClient) GetX(ctx context.Context, id uuid.UUID) *UserVe
 	return obj
 }
 
-// QueryUser queries the user edge of a UserVerification.
-func (c *UserVerificationClient) QueryUser(uv *UserVerification) *UserQuery {
+// QueryUser queries the user edge of a Verification.
+func (c *VerificationClient) QueryUser(v *Verification) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := uv.ID
+		id := v.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(userverification.Table, userverification.FieldID, id),
+			sqlgraph.From(verification.Table, verification.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, userverification.UserTable, userverification.UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, verification.UserTable, verification.UserColumn),
 		)
-		fromV = sqlgraph.Neighbors(uv.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // Hooks returns the client hooks.
-func (c *UserVerificationClient) Hooks() []Hook {
-	return c.hooks.UserVerification
+func (c *VerificationClient) Hooks() []Hook {
+	return c.hooks.Verification
 }
 
 // Interceptors returns the client interceptors.
-func (c *UserVerificationClient) Interceptors() []Interceptor {
-	return c.inters.UserVerification
+func (c *VerificationClient) Interceptors() []Interceptor {
+	return c.inters.Verification
 }
 
-func (c *UserVerificationClient) mutate(ctx context.Context, m *UserVerificationMutation) (Value, error) {
+func (c *VerificationClient) mutate(ctx context.Context, m *VerificationMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&UserVerificationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&VerificationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&UserVerificationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&VerificationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&UserVerificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&VerificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&UserVerificationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&VerificationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown UserVerification mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown Verification mutation op: %q", m.Op())
 	}
 }
 
@@ -1383,10 +1383,10 @@ func (c *UserVerificationClient) mutate(ctx context.Context, m *UserVerification
 type (
 	hooks struct {
 		OidcClient, Project, ProjectDomain, Token, User, UserSession,
-		UserVerification []ent.Hook
+		Verification []ent.Hook
 	}
 	inters struct {
 		OidcClient, Project, ProjectDomain, Token, User, UserSession,
-		UserVerification []ent.Interceptor
+		Verification []ent.Interceptor
 	}
 )

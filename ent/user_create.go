@@ -17,7 +17,7 @@ import (
 	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
-	"github.com/usegranthq/backend/ent/userverification"
+	"github.com/usegranthq/backend/ent/verification"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -154,19 +154,19 @@ func (uc *UserCreate) AddProjects(p ...*Project) *UserCreate {
 	return uc.AddProjectIDs(ids...)
 }
 
-// AddUserVerificationIDs adds the "user_verifications" edge to the UserVerification entity by IDs.
-func (uc *UserCreate) AddUserVerificationIDs(ids ...uuid.UUID) *UserCreate {
-	uc.mutation.AddUserVerificationIDs(ids...)
+// AddVerificationIDs adds the "verifications" edge to the Verification entity by IDs.
+func (uc *UserCreate) AddVerificationIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddVerificationIDs(ids...)
 	return uc
 }
 
-// AddUserVerifications adds the "user_verifications" edges to the UserVerification entity.
-func (uc *UserCreate) AddUserVerifications(u ...*UserVerification) *UserCreate {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddVerifications adds the "verifications" edges to the Verification entity.
+func (uc *UserCreate) AddVerifications(v ...*Verification) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return uc.AddUserVerificationIDs(ids...)
+	return uc.AddVerificationIDs(ids...)
 }
 
 // AddTokenIDs adds the "tokens" edge to the Token entity by IDs.
@@ -360,15 +360,15 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.UserVerificationsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.VerificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UserVerificationsTable,
-			Columns: []string{user.UserVerificationsColumn},
+			Table:   user.VerificationsTable,
+			Columns: []string{user.VerificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(verification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

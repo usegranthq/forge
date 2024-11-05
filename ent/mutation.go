@@ -19,7 +19,7 @@ import (
 	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
-	"github.com/usegranthq/backend/ent/userverification"
+	"github.com/usegranthq/backend/ent/verification"
 )
 
 const (
@@ -31,13 +31,13 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeOidcClient       = "OidcClient"
-	TypeProject          = "Project"
-	TypeProjectDomain    = "ProjectDomain"
-	TypeToken            = "Token"
-	TypeUser             = "User"
-	TypeUserSession      = "UserSession"
-	TypeUserVerification = "UserVerification"
+	TypeOidcClient    = "OidcClient"
+	TypeProject       = "Project"
+	TypeProjectDomain = "ProjectDomain"
+	TypeToken         = "Token"
+	TypeUser          = "User"
+	TypeUserSession   = "UserSession"
+	TypeVerification  = "Verification"
 )
 
 // OidcClientMutation represents an operation that mutates the OidcClient nodes in the graph.
@@ -2864,32 +2864,32 @@ func (m *TokenMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                        Op
-	typ                       string
-	id                        *uuid.UUID
-	uid                       *uuid.UUID
-	email                     *string
-	last_login                *time.Time
-	verified_at               *time.Time
-	provider                  *user.Provider
-	created_at                *time.Time
-	updated_at                *time.Time
-	clearedFields             map[string]struct{}
-	user_sessions             map[uuid.UUID]struct{}
-	removeduser_sessions      map[uuid.UUID]struct{}
-	cleareduser_sessions      bool
-	projects                  map[uuid.UUID]struct{}
-	removedprojects           map[uuid.UUID]struct{}
-	clearedprojects           bool
-	user_verifications        map[uuid.UUID]struct{}
-	removeduser_verifications map[uuid.UUID]struct{}
-	cleareduser_verifications bool
-	tokens                    map[uuid.UUID]struct{}
-	removedtokens             map[uuid.UUID]struct{}
-	clearedtokens             bool
-	done                      bool
-	oldValue                  func(context.Context) (*User, error)
-	predicates                []predicate.User
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	uid                  *uuid.UUID
+	email                *string
+	last_login           *time.Time
+	verified_at          *time.Time
+	provider             *user.Provider
+	created_at           *time.Time
+	updated_at           *time.Time
+	clearedFields        map[string]struct{}
+	user_sessions        map[uuid.UUID]struct{}
+	removeduser_sessions map[uuid.UUID]struct{}
+	cleareduser_sessions bool
+	projects             map[uuid.UUID]struct{}
+	removedprojects      map[uuid.UUID]struct{}
+	clearedprojects      bool
+	verifications        map[uuid.UUID]struct{}
+	removedverifications map[uuid.UUID]struct{}
+	clearedverifications bool
+	tokens               map[uuid.UUID]struct{}
+	removedtokens        map[uuid.UUID]struct{}
+	clearedtokens        bool
+	done                 bool
+	oldValue             func(context.Context) (*User, error)
+	predicates           []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -3382,58 +3382,58 @@ func (m *UserMutation) ResetProjects() {
 	m.removedprojects = nil
 }
 
-// AddUserVerificationIDs adds the "user_verifications" edge to the UserVerification entity by ids.
-func (m *UserMutation) AddUserVerificationIDs(ids ...uuid.UUID) {
-	if m.user_verifications == nil {
-		m.user_verifications = make(map[uuid.UUID]struct{})
+// AddVerificationIDs adds the "verifications" edge to the Verification entity by ids.
+func (m *UserMutation) AddVerificationIDs(ids ...uuid.UUID) {
+	if m.verifications == nil {
+		m.verifications = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.user_verifications[ids[i]] = struct{}{}
+		m.verifications[ids[i]] = struct{}{}
 	}
 }
 
-// ClearUserVerifications clears the "user_verifications" edge to the UserVerification entity.
-func (m *UserMutation) ClearUserVerifications() {
-	m.cleareduser_verifications = true
+// ClearVerifications clears the "verifications" edge to the Verification entity.
+func (m *UserMutation) ClearVerifications() {
+	m.clearedverifications = true
 }
 
-// UserVerificationsCleared reports if the "user_verifications" edge to the UserVerification entity was cleared.
-func (m *UserMutation) UserVerificationsCleared() bool {
-	return m.cleareduser_verifications
+// VerificationsCleared reports if the "verifications" edge to the Verification entity was cleared.
+func (m *UserMutation) VerificationsCleared() bool {
+	return m.clearedverifications
 }
 
-// RemoveUserVerificationIDs removes the "user_verifications" edge to the UserVerification entity by IDs.
-func (m *UserMutation) RemoveUserVerificationIDs(ids ...uuid.UUID) {
-	if m.removeduser_verifications == nil {
-		m.removeduser_verifications = make(map[uuid.UUID]struct{})
+// RemoveVerificationIDs removes the "verifications" edge to the Verification entity by IDs.
+func (m *UserMutation) RemoveVerificationIDs(ids ...uuid.UUID) {
+	if m.removedverifications == nil {
+		m.removedverifications = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.user_verifications, ids[i])
-		m.removeduser_verifications[ids[i]] = struct{}{}
+		delete(m.verifications, ids[i])
+		m.removedverifications[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedUserVerifications returns the removed IDs of the "user_verifications" edge to the UserVerification entity.
-func (m *UserMutation) RemovedUserVerificationsIDs() (ids []uuid.UUID) {
-	for id := range m.removeduser_verifications {
+// RemovedVerifications returns the removed IDs of the "verifications" edge to the Verification entity.
+func (m *UserMutation) RemovedVerificationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedverifications {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// UserVerificationsIDs returns the "user_verifications" edge IDs in the mutation.
-func (m *UserMutation) UserVerificationsIDs() (ids []uuid.UUID) {
-	for id := range m.user_verifications {
+// VerificationsIDs returns the "verifications" edge IDs in the mutation.
+func (m *UserMutation) VerificationsIDs() (ids []uuid.UUID) {
+	for id := range m.verifications {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetUserVerifications resets all changes to the "user_verifications" edge.
-func (m *UserMutation) ResetUserVerifications() {
-	m.user_verifications = nil
-	m.cleareduser_verifications = false
-	m.removeduser_verifications = nil
+// ResetVerifications resets all changes to the "verifications" edge.
+func (m *UserMutation) ResetVerifications() {
+	m.verifications = nil
+	m.clearedverifications = false
+	m.removedverifications = nil
 }
 
 // AddTokenIDs adds the "tokens" edge to the Token entity by ids.
@@ -3747,8 +3747,8 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.projects != nil {
 		edges = append(edges, user.EdgeProjects)
 	}
-	if m.user_verifications != nil {
-		edges = append(edges, user.EdgeUserVerifications)
+	if m.verifications != nil {
+		edges = append(edges, user.EdgeVerifications)
 	}
 	if m.tokens != nil {
 		edges = append(edges, user.EdgeTokens)
@@ -3772,9 +3772,9 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeUserVerifications:
-		ids := make([]ent.Value, 0, len(m.user_verifications))
-		for id := range m.user_verifications {
+	case user.EdgeVerifications:
+		ids := make([]ent.Value, 0, len(m.verifications))
+		for id := range m.verifications {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3797,8 +3797,8 @@ func (m *UserMutation) RemovedEdges() []string {
 	if m.removedprojects != nil {
 		edges = append(edges, user.EdgeProjects)
 	}
-	if m.removeduser_verifications != nil {
-		edges = append(edges, user.EdgeUserVerifications)
+	if m.removedverifications != nil {
+		edges = append(edges, user.EdgeVerifications)
 	}
 	if m.removedtokens != nil {
 		edges = append(edges, user.EdgeTokens)
@@ -3822,9 +3822,9 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeUserVerifications:
-		ids := make([]ent.Value, 0, len(m.removeduser_verifications))
-		for id := range m.removeduser_verifications {
+	case user.EdgeVerifications:
+		ids := make([]ent.Value, 0, len(m.removedverifications))
+		for id := range m.removedverifications {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3847,8 +3847,8 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedprojects {
 		edges = append(edges, user.EdgeProjects)
 	}
-	if m.cleareduser_verifications {
-		edges = append(edges, user.EdgeUserVerifications)
+	if m.clearedverifications {
+		edges = append(edges, user.EdgeVerifications)
 	}
 	if m.clearedtokens {
 		edges = append(edges, user.EdgeTokens)
@@ -3864,8 +3864,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.cleareduser_sessions
 	case user.EdgeProjects:
 		return m.clearedprojects
-	case user.EdgeUserVerifications:
-		return m.cleareduser_verifications
+	case user.EdgeVerifications:
+		return m.clearedverifications
 	case user.EdgeTokens:
 		return m.clearedtokens
 	}
@@ -3890,8 +3890,8 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeProjects:
 		m.ResetProjects()
 		return nil
-	case user.EdgeUserVerifications:
-		m.ResetUserVerifications()
+	case user.EdgeVerifications:
+		m.ResetVerifications()
 		return nil
 	case user.EdgeTokens:
 		m.ResetTokens()
@@ -4483,13 +4483,14 @@ func (m *UserSessionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown UserSession edge %s", name)
 }
 
-// UserVerificationMutation represents an operation that mutates the UserVerification nodes in the graph.
-type UserVerificationMutation struct {
+// VerificationMutation represents an operation that mutates the Verification nodes in the graph.
+type VerificationMutation struct {
 	config
 	op            Op
 	typ           string
 	id            *uuid.UUID
 	attempt_id    *uuid.UUID
+	_type         *verification.Type
 	code          *string
 	attempts      *int
 	addattempts   *int
@@ -4500,21 +4501,21 @@ type UserVerificationMutation struct {
 	user          *uuid.UUID
 	cleareduser   bool
 	done          bool
-	oldValue      func(context.Context) (*UserVerification, error)
-	predicates    []predicate.UserVerification
+	oldValue      func(context.Context) (*Verification, error)
+	predicates    []predicate.Verification
 }
 
-var _ ent.Mutation = (*UserVerificationMutation)(nil)
+var _ ent.Mutation = (*VerificationMutation)(nil)
 
-// userverificationOption allows management of the mutation configuration using functional options.
-type userverificationOption func(*UserVerificationMutation)
+// verificationOption allows management of the mutation configuration using functional options.
+type verificationOption func(*VerificationMutation)
 
-// newUserVerificationMutation creates new mutation for the UserVerification entity.
-func newUserVerificationMutation(c config, op Op, opts ...userverificationOption) *UserVerificationMutation {
-	m := &UserVerificationMutation{
+// newVerificationMutation creates new mutation for the Verification entity.
+func newVerificationMutation(c config, op Op, opts ...verificationOption) *VerificationMutation {
+	m := &VerificationMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeUserVerification,
+		typ:           TypeVerification,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -4523,20 +4524,20 @@ func newUserVerificationMutation(c config, op Op, opts ...userverificationOption
 	return m
 }
 
-// withUserVerificationID sets the ID field of the mutation.
-func withUserVerificationID(id uuid.UUID) userverificationOption {
-	return func(m *UserVerificationMutation) {
+// withVerificationID sets the ID field of the mutation.
+func withVerificationID(id uuid.UUID) verificationOption {
+	return func(m *VerificationMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *UserVerification
+			value *Verification
 		)
-		m.oldValue = func(ctx context.Context) (*UserVerification, error) {
+		m.oldValue = func(ctx context.Context) (*Verification, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().UserVerification.Get(ctx, id)
+					value, err = m.Client().Verification.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -4545,10 +4546,10 @@ func withUserVerificationID(id uuid.UUID) userverificationOption {
 	}
 }
 
-// withUserVerification sets the old UserVerification of the mutation.
-func withUserVerification(node *UserVerification) userverificationOption {
-	return func(m *UserVerificationMutation) {
-		m.oldValue = func(context.Context) (*UserVerification, error) {
+// withVerification sets the old Verification of the mutation.
+func withVerification(node *Verification) verificationOption {
+	return func(m *VerificationMutation) {
+		m.oldValue = func(context.Context) (*Verification, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -4557,7 +4558,7 @@ func withUserVerification(node *UserVerification) userverificationOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m UserVerificationMutation) Client() *Client {
+func (m VerificationMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -4565,7 +4566,7 @@ func (m UserVerificationMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m UserVerificationMutation) Tx() (*Tx, error) {
+func (m VerificationMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -4575,14 +4576,14 @@ func (m UserVerificationMutation) Tx() (*Tx, error) {
 }
 
 // SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of UserVerification entities.
-func (m *UserVerificationMutation) SetID(id uuid.UUID) {
+// operation is only accepted on creation of Verification entities.
+func (m *VerificationMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserVerificationMutation) ID() (id uuid.UUID, exists bool) {
+func (m *VerificationMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -4593,7 +4594,7 @@ func (m *UserVerificationMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserVerificationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *VerificationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -4602,19 +4603,19 @@ func (m *UserVerificationMutation) IDs(ctx context.Context) ([]uuid.UUID, error)
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().UserVerification.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().Verification.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
 // SetAttemptID sets the "attempt_id" field.
-func (m *UserVerificationMutation) SetAttemptID(u uuid.UUID) {
+func (m *VerificationMutation) SetAttemptID(u uuid.UUID) {
 	m.attempt_id = &u
 }
 
 // AttemptID returns the value of the "attempt_id" field in the mutation.
-func (m *UserVerificationMutation) AttemptID() (r uuid.UUID, exists bool) {
+func (m *VerificationMutation) AttemptID() (r uuid.UUID, exists bool) {
 	v := m.attempt_id
 	if v == nil {
 		return
@@ -4622,10 +4623,10 @@ func (m *UserVerificationMutation) AttemptID() (r uuid.UUID, exists bool) {
 	return *v, true
 }
 
-// OldAttemptID returns the old "attempt_id" field's value of the UserVerification entity.
-// If the UserVerification object wasn't provided to the builder, the object is fetched from the database.
+// OldAttemptID returns the old "attempt_id" field's value of the Verification entity.
+// If the Verification object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserVerificationMutation) OldAttemptID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *VerificationMutation) OldAttemptID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldAttemptID is only allowed on UpdateOne operations")
 	}
@@ -4640,17 +4641,53 @@ func (m *UserVerificationMutation) OldAttemptID(ctx context.Context) (v uuid.UUI
 }
 
 // ResetAttemptID resets all changes to the "attempt_id" field.
-func (m *UserVerificationMutation) ResetAttemptID() {
+func (m *VerificationMutation) ResetAttemptID() {
 	m.attempt_id = nil
 }
 
+// SetType sets the "type" field.
+func (m *VerificationMutation) SetType(v verification.Type) {
+	m._type = &v
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *VerificationMutation) GetType() (r verification.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Verification entity.
+// If the Verification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VerificationMutation) OldType(ctx context.Context) (v verification.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *VerificationMutation) ResetType() {
+	m._type = nil
+}
+
 // SetCode sets the "code" field.
-func (m *UserVerificationMutation) SetCode(s string) {
+func (m *VerificationMutation) SetCode(s string) {
 	m.code = &s
 }
 
 // Code returns the value of the "code" field in the mutation.
-func (m *UserVerificationMutation) Code() (r string, exists bool) {
+func (m *VerificationMutation) Code() (r string, exists bool) {
 	v := m.code
 	if v == nil {
 		return
@@ -4658,10 +4695,10 @@ func (m *UserVerificationMutation) Code() (r string, exists bool) {
 	return *v, true
 }
 
-// OldCode returns the old "code" field's value of the UserVerification entity.
-// If the UserVerification object wasn't provided to the builder, the object is fetched from the database.
+// OldCode returns the old "code" field's value of the Verification entity.
+// If the Verification object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserVerificationMutation) OldCode(ctx context.Context) (v string, err error) {
+func (m *VerificationMutation) OldCode(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCode is only allowed on UpdateOne operations")
 	}
@@ -4676,18 +4713,18 @@ func (m *UserVerificationMutation) OldCode(ctx context.Context) (v string, err e
 }
 
 // ResetCode resets all changes to the "code" field.
-func (m *UserVerificationMutation) ResetCode() {
+func (m *VerificationMutation) ResetCode() {
 	m.code = nil
 }
 
 // SetAttempts sets the "attempts" field.
-func (m *UserVerificationMutation) SetAttempts(i int) {
+func (m *VerificationMutation) SetAttempts(i int) {
 	m.attempts = &i
 	m.addattempts = nil
 }
 
 // Attempts returns the value of the "attempts" field in the mutation.
-func (m *UserVerificationMutation) Attempts() (r int, exists bool) {
+func (m *VerificationMutation) Attempts() (r int, exists bool) {
 	v := m.attempts
 	if v == nil {
 		return
@@ -4695,10 +4732,10 @@ func (m *UserVerificationMutation) Attempts() (r int, exists bool) {
 	return *v, true
 }
 
-// OldAttempts returns the old "attempts" field's value of the UserVerification entity.
-// If the UserVerification object wasn't provided to the builder, the object is fetched from the database.
+// OldAttempts returns the old "attempts" field's value of the Verification entity.
+// If the Verification object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserVerificationMutation) OldAttempts(ctx context.Context) (v int, err error) {
+func (m *VerificationMutation) OldAttempts(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldAttempts is only allowed on UpdateOne operations")
 	}
@@ -4713,7 +4750,7 @@ func (m *UserVerificationMutation) OldAttempts(ctx context.Context) (v int, err 
 }
 
 // AddAttempts adds i to the "attempts" field.
-func (m *UserVerificationMutation) AddAttempts(i int) {
+func (m *VerificationMutation) AddAttempts(i int) {
 	if m.addattempts != nil {
 		*m.addattempts += i
 	} else {
@@ -4722,7 +4759,7 @@ func (m *UserVerificationMutation) AddAttempts(i int) {
 }
 
 // AddedAttempts returns the value that was added to the "attempts" field in this mutation.
-func (m *UserVerificationMutation) AddedAttempts() (r int, exists bool) {
+func (m *VerificationMutation) AddedAttempts() (r int, exists bool) {
 	v := m.addattempts
 	if v == nil {
 		return
@@ -4731,18 +4768,18 @@ func (m *UserVerificationMutation) AddedAttempts() (r int, exists bool) {
 }
 
 // ResetAttempts resets all changes to the "attempts" field.
-func (m *UserVerificationMutation) ResetAttempts() {
+func (m *VerificationMutation) ResetAttempts() {
 	m.attempts = nil
 	m.addattempts = nil
 }
 
 // SetExpiresAt sets the "expires_at" field.
-func (m *UserVerificationMutation) SetExpiresAt(t time.Time) {
+func (m *VerificationMutation) SetExpiresAt(t time.Time) {
 	m.expires_at = &t
 }
 
 // ExpiresAt returns the value of the "expires_at" field in the mutation.
-func (m *UserVerificationMutation) ExpiresAt() (r time.Time, exists bool) {
+func (m *VerificationMutation) ExpiresAt() (r time.Time, exists bool) {
 	v := m.expires_at
 	if v == nil {
 		return
@@ -4750,10 +4787,10 @@ func (m *UserVerificationMutation) ExpiresAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldExpiresAt returns the old "expires_at" field's value of the UserVerification entity.
-// If the UserVerification object wasn't provided to the builder, the object is fetched from the database.
+// OldExpiresAt returns the old "expires_at" field's value of the Verification entity.
+// If the Verification object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserVerificationMutation) OldExpiresAt(ctx context.Context) (v time.Time, err error) {
+func (m *VerificationMutation) OldExpiresAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
 	}
@@ -4768,17 +4805,17 @@ func (m *UserVerificationMutation) OldExpiresAt(ctx context.Context) (v time.Tim
 }
 
 // ResetExpiresAt resets all changes to the "expires_at" field.
-func (m *UserVerificationMutation) ResetExpiresAt() {
+func (m *VerificationMutation) ResetExpiresAt() {
 	m.expires_at = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (m *UserVerificationMutation) SetCreatedAt(t time.Time) {
+func (m *VerificationMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
 }
 
 // CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *UserVerificationMutation) CreatedAt() (r time.Time, exists bool) {
+func (m *VerificationMutation) CreatedAt() (r time.Time, exists bool) {
 	v := m.created_at
 	if v == nil {
 		return
@@ -4786,10 +4823,10 @@ func (m *UserVerificationMutation) CreatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreatedAt returns the old "created_at" field's value of the UserVerification entity.
-// If the UserVerification object wasn't provided to the builder, the object is fetched from the database.
+// OldCreatedAt returns the old "created_at" field's value of the Verification entity.
+// If the Verification object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserVerificationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *VerificationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
 	}
@@ -4804,17 +4841,17 @@ func (m *UserVerificationMutation) OldCreatedAt(ctx context.Context) (v time.Tim
 }
 
 // ResetCreatedAt resets all changes to the "created_at" field.
-func (m *UserVerificationMutation) ResetCreatedAt() {
+func (m *VerificationMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (m *UserVerificationMutation) SetUpdatedAt(t time.Time) {
+func (m *VerificationMutation) SetUpdatedAt(t time.Time) {
 	m.updated_at = &t
 }
 
 // UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *UserVerificationMutation) UpdatedAt() (r time.Time, exists bool) {
+func (m *VerificationMutation) UpdatedAt() (r time.Time, exists bool) {
 	v := m.updated_at
 	if v == nil {
 		return
@@ -4822,10 +4859,10 @@ func (m *UserVerificationMutation) UpdatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdatedAt returns the old "updated_at" field's value of the UserVerification entity.
-// If the UserVerification object wasn't provided to the builder, the object is fetched from the database.
+// OldUpdatedAt returns the old "updated_at" field's value of the Verification entity.
+// If the Verification object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserVerificationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *VerificationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
 	}
@@ -4840,27 +4877,27 @@ func (m *UserVerificationMutation) OldUpdatedAt(ctx context.Context) (v time.Tim
 }
 
 // ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *UserVerificationMutation) ResetUpdatedAt() {
+func (m *VerificationMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *UserVerificationMutation) SetUserID(id uuid.UUID) {
+func (m *VerificationMutation) SetUserID(id uuid.UUID) {
 	m.user = &id
 }
 
 // ClearUser clears the "user" edge to the User entity.
-func (m *UserVerificationMutation) ClearUser() {
+func (m *VerificationMutation) ClearUser() {
 	m.cleareduser = true
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *UserVerificationMutation) UserCleared() bool {
+func (m *VerificationMutation) UserCleared() bool {
 	return m.cleareduser
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *UserVerificationMutation) UserID() (id uuid.UUID, exists bool) {
+func (m *VerificationMutation) UserID() (id uuid.UUID, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -4870,7 +4907,7 @@ func (m *UserVerificationMutation) UserID() (id uuid.UUID, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *UserVerificationMutation) UserIDs() (ids []uuid.UUID) {
+func (m *VerificationMutation) UserIDs() (ids []uuid.UUID) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -4878,20 +4915,20 @@ func (m *UserVerificationMutation) UserIDs() (ids []uuid.UUID) {
 }
 
 // ResetUser resets all changes to the "user" edge.
-func (m *UserVerificationMutation) ResetUser() {
+func (m *VerificationMutation) ResetUser() {
 	m.user = nil
 	m.cleareduser = false
 }
 
-// Where appends a list predicates to the UserVerificationMutation builder.
-func (m *UserVerificationMutation) Where(ps ...predicate.UserVerification) {
+// Where appends a list predicates to the VerificationMutation builder.
+func (m *VerificationMutation) Where(ps ...predicate.Verification) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the UserVerificationMutation builder. Using this method,
+// WhereP appends storage-level predicates to the VerificationMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *UserVerificationMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.UserVerification, len(ps))
+func (m *VerificationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Verification, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -4899,42 +4936,45 @@ func (m *UserVerificationMutation) WhereP(ps ...func(*sql.Selector)) {
 }
 
 // Op returns the operation name.
-func (m *UserVerificationMutation) Op() Op {
+func (m *VerificationMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *UserVerificationMutation) SetOp(op Op) {
+func (m *VerificationMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (UserVerification).
-func (m *UserVerificationMutation) Type() string {
+// Type returns the node type of this mutation (Verification).
+func (m *VerificationMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *UserVerificationMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+func (m *VerificationMutation) Fields() []string {
+	fields := make([]string, 0, 7)
 	if m.attempt_id != nil {
-		fields = append(fields, userverification.FieldAttemptID)
+		fields = append(fields, verification.FieldAttemptID)
+	}
+	if m._type != nil {
+		fields = append(fields, verification.FieldType)
 	}
 	if m.code != nil {
-		fields = append(fields, userverification.FieldCode)
+		fields = append(fields, verification.FieldCode)
 	}
 	if m.attempts != nil {
-		fields = append(fields, userverification.FieldAttempts)
+		fields = append(fields, verification.FieldAttempts)
 	}
 	if m.expires_at != nil {
-		fields = append(fields, userverification.FieldExpiresAt)
+		fields = append(fields, verification.FieldExpiresAt)
 	}
 	if m.created_at != nil {
-		fields = append(fields, userverification.FieldCreatedAt)
+		fields = append(fields, verification.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
-		fields = append(fields, userverification.FieldUpdatedAt)
+		fields = append(fields, verification.FieldUpdatedAt)
 	}
 	return fields
 }
@@ -4942,19 +4982,21 @@ func (m *UserVerificationMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *UserVerificationMutation) Field(name string) (ent.Value, bool) {
+func (m *VerificationMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case userverification.FieldAttemptID:
+	case verification.FieldAttemptID:
 		return m.AttemptID()
-	case userverification.FieldCode:
+	case verification.FieldType:
+		return m.GetType()
+	case verification.FieldCode:
 		return m.Code()
-	case userverification.FieldAttempts:
+	case verification.FieldAttempts:
 		return m.Attempts()
-	case userverification.FieldExpiresAt:
+	case verification.FieldExpiresAt:
 		return m.ExpiresAt()
-	case userverification.FieldCreatedAt:
+	case verification.FieldCreatedAt:
 		return m.CreatedAt()
-	case userverification.FieldUpdatedAt:
+	case verification.FieldUpdatedAt:
 		return m.UpdatedAt()
 	}
 	return nil, false
@@ -4963,65 +5005,74 @@ func (m *UserVerificationMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *UserVerificationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *VerificationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case userverification.FieldAttemptID:
+	case verification.FieldAttemptID:
 		return m.OldAttemptID(ctx)
-	case userverification.FieldCode:
+	case verification.FieldType:
+		return m.OldType(ctx)
+	case verification.FieldCode:
 		return m.OldCode(ctx)
-	case userverification.FieldAttempts:
+	case verification.FieldAttempts:
 		return m.OldAttempts(ctx)
-	case userverification.FieldExpiresAt:
+	case verification.FieldExpiresAt:
 		return m.OldExpiresAt(ctx)
-	case userverification.FieldCreatedAt:
+	case verification.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case userverification.FieldUpdatedAt:
+	case verification.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
 	}
-	return nil, fmt.Errorf("unknown UserVerification field %s", name)
+	return nil, fmt.Errorf("unknown Verification field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *UserVerificationMutation) SetField(name string, value ent.Value) error {
+func (m *VerificationMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case userverification.FieldAttemptID:
+	case verification.FieldAttemptID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAttemptID(v)
 		return nil
-	case userverification.FieldCode:
+	case verification.FieldType:
+		v, ok := value.(verification.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case verification.FieldCode:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCode(v)
 		return nil
-	case userverification.FieldAttempts:
+	case verification.FieldAttempts:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAttempts(v)
 		return nil
-	case userverification.FieldExpiresAt:
+	case verification.FieldExpiresAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetExpiresAt(v)
 		return nil
-	case userverification.FieldCreatedAt:
+	case verification.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case userverification.FieldUpdatedAt:
+	case verification.FieldUpdatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -5029,15 +5080,15 @@ func (m *UserVerificationMutation) SetField(name string, value ent.Value) error 
 		m.SetUpdatedAt(v)
 		return nil
 	}
-	return fmt.Errorf("unknown UserVerification field %s", name)
+	return fmt.Errorf("unknown Verification field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *UserVerificationMutation) AddedFields() []string {
+func (m *VerificationMutation) AddedFields() []string {
 	var fields []string
 	if m.addattempts != nil {
-		fields = append(fields, userverification.FieldAttempts)
+		fields = append(fields, verification.FieldAttempts)
 	}
 	return fields
 }
@@ -5045,9 +5096,9 @@ func (m *UserVerificationMutation) AddedFields() []string {
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *UserVerificationMutation) AddedField(name string) (ent.Value, bool) {
+func (m *VerificationMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case userverification.FieldAttempts:
+	case verification.FieldAttempts:
 		return m.AddedAttempts()
 	}
 	return nil, false
@@ -5056,9 +5107,9 @@ func (m *UserVerificationMutation) AddedField(name string) (ent.Value, bool) {
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *UserVerificationMutation) AddField(name string, value ent.Value) error {
+func (m *VerificationMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case userverification.FieldAttempts:
+	case verification.FieldAttempts:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -5066,68 +5117,71 @@ func (m *UserVerificationMutation) AddField(name string, value ent.Value) error 
 		m.AddAttempts(v)
 		return nil
 	}
-	return fmt.Errorf("unknown UserVerification numeric field %s", name)
+	return fmt.Errorf("unknown Verification numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *UserVerificationMutation) ClearedFields() []string {
+func (m *VerificationMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *UserVerificationMutation) FieldCleared(name string) bool {
+func (m *VerificationMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *UserVerificationMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown UserVerification nullable field %s", name)
+func (m *VerificationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Verification nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *UserVerificationMutation) ResetField(name string) error {
+func (m *VerificationMutation) ResetField(name string) error {
 	switch name {
-	case userverification.FieldAttemptID:
+	case verification.FieldAttemptID:
 		m.ResetAttemptID()
 		return nil
-	case userverification.FieldCode:
+	case verification.FieldType:
+		m.ResetType()
+		return nil
+	case verification.FieldCode:
 		m.ResetCode()
 		return nil
-	case userverification.FieldAttempts:
+	case verification.FieldAttempts:
 		m.ResetAttempts()
 		return nil
-	case userverification.FieldExpiresAt:
+	case verification.FieldExpiresAt:
 		m.ResetExpiresAt()
 		return nil
-	case userverification.FieldCreatedAt:
+	case verification.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case userverification.FieldUpdatedAt:
+	case verification.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
 	}
-	return fmt.Errorf("unknown UserVerification field %s", name)
+	return fmt.Errorf("unknown Verification field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *UserVerificationMutation) AddedEdges() []string {
+func (m *VerificationMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
 	if m.user != nil {
-		edges = append(edges, userverification.EdgeUser)
+		edges = append(edges, verification.EdgeUser)
 	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *UserVerificationMutation) AddedIDs(name string) []ent.Value {
+func (m *VerificationMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case userverification.EdgeUser:
+	case verification.EdgeUser:
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
@@ -5136,31 +5190,31 @@ func (m *UserVerificationMutation) AddedIDs(name string) []ent.Value {
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *UserVerificationMutation) RemovedEdges() []string {
+func (m *VerificationMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *UserVerificationMutation) RemovedIDs(name string) []ent.Value {
+func (m *VerificationMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *UserVerificationMutation) ClearedEdges() []string {
+func (m *VerificationMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
 	if m.cleareduser {
-		edges = append(edges, userverification.EdgeUser)
+		edges = append(edges, verification.EdgeUser)
 	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *UserVerificationMutation) EdgeCleared(name string) bool {
+func (m *VerificationMutation) EdgeCleared(name string) bool {
 	switch name {
-	case userverification.EdgeUser:
+	case verification.EdgeUser:
 		return m.cleareduser
 	}
 	return false
@@ -5168,22 +5222,22 @@ func (m *UserVerificationMutation) EdgeCleared(name string) bool {
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *UserVerificationMutation) ClearEdge(name string) error {
+func (m *VerificationMutation) ClearEdge(name string) error {
 	switch name {
-	case userverification.EdgeUser:
+	case verification.EdgeUser:
 		m.ClearUser()
 		return nil
 	}
-	return fmt.Errorf("unknown UserVerification unique edge %s", name)
+	return fmt.Errorf("unknown Verification unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *UserVerificationMutation) ResetEdge(name string) error {
+func (m *VerificationMutation) ResetEdge(name string) error {
 	switch name {
-	case userverification.EdgeUser:
+	case verification.EdgeUser:
 		m.ResetUser()
 		return nil
 	}
-	return fmt.Errorf("unknown UserVerification edge %s", name)
+	return fmt.Errorf("unknown Verification edge %s", name)
 }

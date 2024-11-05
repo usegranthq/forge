@@ -24,8 +24,8 @@ type Tx struct {
 	User *UserClient
 	// UserSession is the client for interacting with the UserSession builders.
 	UserSession *UserSessionClient
-	// UserVerification is the client for interacting with the UserVerification builders.
-	UserVerification *UserVerificationClient
+	// Verification is the client for interacting with the Verification builders.
+	Verification *VerificationClient
 
 	// lazily loaded.
 	client     *Client
@@ -163,7 +163,7 @@ func (tx *Tx) init() {
 	tx.Token = NewTokenClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserSession = NewUserSessionClient(tx.config)
-	tx.UserVerification = NewUserVerificationClient(tx.config)
+	tx.Verification = NewVerificationClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

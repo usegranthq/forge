@@ -437,21 +437,21 @@ func HasProjectsWith(preds ...predicate.Project) predicate.User {
 	})
 }
 
-// HasUserVerifications applies the HasEdge predicate on the "user_verifications" edge.
-func HasUserVerifications() predicate.User {
+// HasVerifications applies the HasEdge predicate on the "verifications" edge.
+func HasVerifications() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, UserVerificationsTable, UserVerificationsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, VerificationsTable, VerificationsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasUserVerificationsWith applies the HasEdge predicate on the "user_verifications" edge with a given conditions (other predicates).
-func HasUserVerificationsWith(preds ...predicate.UserVerification) predicate.User {
+// HasVerificationsWith applies the HasEdge predicate on the "verifications" edge with a given conditions (other predicates).
+func HasVerificationsWith(preds ...predicate.Verification) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newUserVerificationsStep()
+		step := newVerificationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

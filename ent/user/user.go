@@ -34,8 +34,8 @@ const (
 	EdgeUserSessions = "user_sessions"
 	// EdgeProjects holds the string denoting the projects edge name in mutations.
 	EdgeProjects = "projects"
-	// EdgeUserVerifications holds the string denoting the user_verifications edge name in mutations.
-	EdgeUserVerifications = "user_verifications"
+	// EdgeVerifications holds the string denoting the verifications edge name in mutations.
+	EdgeVerifications = "verifications"
 	// EdgeTokens holds the string denoting the tokens edge name in mutations.
 	EdgeTokens = "tokens"
 	// Table holds the table name of the user in the database.
@@ -54,13 +54,13 @@ const (
 	ProjectsInverseTable = "projects"
 	// ProjectsColumn is the table column denoting the projects relation/edge.
 	ProjectsColumn = "user_projects"
-	// UserVerificationsTable is the table that holds the user_verifications relation/edge.
-	UserVerificationsTable = "user_verifications"
-	// UserVerificationsInverseTable is the table name for the UserVerification entity.
-	// It exists in this package in order to avoid circular dependency with the "userverification" package.
-	UserVerificationsInverseTable = "user_verifications"
-	// UserVerificationsColumn is the table column denoting the user_verifications relation/edge.
-	UserVerificationsColumn = "user_user_verifications"
+	// VerificationsTable is the table that holds the verifications relation/edge.
+	VerificationsTable = "verifications"
+	// VerificationsInverseTable is the table name for the Verification entity.
+	// It exists in this package in order to avoid circular dependency with the "verification" package.
+	VerificationsInverseTable = "verifications"
+	// VerificationsColumn is the table column denoting the verifications relation/edge.
+	VerificationsColumn = "user_verifications"
 	// TokensTable is the table that holds the tokens relation/edge.
 	TokensTable = "tokens"
 	// TokensInverseTable is the table name for the Token entity.
@@ -202,17 +202,17 @@ func ByProjects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByUserVerificationsCount orders the results by user_verifications count.
-func ByUserVerificationsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByVerificationsCount orders the results by verifications count.
+func ByVerificationsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newUserVerificationsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newVerificationsStep(), opts...)
 	}
 }
 
-// ByUserVerifications orders the results by user_verifications terms.
-func ByUserVerifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByVerifications orders the results by verifications terms.
+func ByVerifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUserVerificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newVerificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -243,11 +243,11 @@ func newProjectsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, ProjectsTable, ProjectsColumn),
 	)
 }
-func newUserVerificationsStep() *sqlgraph.Step {
+func newVerificationsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UserVerificationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, UserVerificationsTable, UserVerificationsColumn),
+		sqlgraph.To(VerificationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VerificationsTable, VerificationsColumn),
 	)
 }
 func newTokensStep() *sqlgraph.Step {

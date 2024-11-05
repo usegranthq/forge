@@ -11,7 +11,7 @@ import (
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent"
 	"github.com/usegranthq/backend/ent/user"
-	"github.com/usegranthq/backend/ent/userverification"
+	"github.com/usegranthq/backend/ent/verification"
 	"github.com/usegranthq/backend/external"
 	"github.com/usegranthq/backend/utils"
 )
@@ -27,8 +27,8 @@ const (
 )
 
 func deleteVerificationCode(c *gin.Context, attemptID uuid.UUID) {
-	_, _ = db.Client.UserVerification.Delete().
-		Where(userverification.AttemptID(attemptID)).
+	_, _ = db.Client.Verification.Delete().
+		Where(verification.AttemptID(attemptID)).
 		Exec(c)
 }
 
@@ -53,8 +53,11 @@ func verifyToken(c *gin.Context, inputToken string, code string) (*ent.User, int
 		return nil, VerificationInvalidCode
 	}
 
-	userVerification, err := db.Client.UserVerification.Query().
-		Where(userverification.AttemptID(attemptID)).
+	userVerification, err := db.Client.Verification.Query().
+		Where(
+			verification.AttemptID(attemptID),
+			verification.TypeEQ(verification.TypeSIGNUP),
+		).
 		Only(c)
 	if err != nil {
 		return nil, VerificationInvalidCode

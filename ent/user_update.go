@@ -17,7 +17,7 @@ import (
 	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
-	"github.com/usegranthq/backend/ent/userverification"
+	"github.com/usegranthq/backend/ent/verification"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -137,19 +137,19 @@ func (uu *UserUpdate) AddProjects(p ...*Project) *UserUpdate {
 	return uu.AddProjectIDs(ids...)
 }
 
-// AddUserVerificationIDs adds the "user_verifications" edge to the UserVerification entity by IDs.
-func (uu *UserUpdate) AddUserVerificationIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.AddUserVerificationIDs(ids...)
+// AddVerificationIDs adds the "verifications" edge to the Verification entity by IDs.
+func (uu *UserUpdate) AddVerificationIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddVerificationIDs(ids...)
 	return uu
 }
 
-// AddUserVerifications adds the "user_verifications" edges to the UserVerification entity.
-func (uu *UserUpdate) AddUserVerifications(u ...*UserVerification) *UserUpdate {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddVerifications adds the "verifications" edges to the Verification entity.
+func (uu *UserUpdate) AddVerifications(v ...*Verification) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return uu.AddUserVerificationIDs(ids...)
+	return uu.AddVerificationIDs(ids...)
 }
 
 // AddTokenIDs adds the "tokens" edge to the Token entity by IDs.
@@ -214,25 +214,25 @@ func (uu *UserUpdate) RemoveProjects(p ...*Project) *UserUpdate {
 	return uu.RemoveProjectIDs(ids...)
 }
 
-// ClearUserVerifications clears all "user_verifications" edges to the UserVerification entity.
-func (uu *UserUpdate) ClearUserVerifications() *UserUpdate {
-	uu.mutation.ClearUserVerifications()
+// ClearVerifications clears all "verifications" edges to the Verification entity.
+func (uu *UserUpdate) ClearVerifications() *UserUpdate {
+	uu.mutation.ClearVerifications()
 	return uu
 }
 
-// RemoveUserVerificationIDs removes the "user_verifications" edge to UserVerification entities by IDs.
-func (uu *UserUpdate) RemoveUserVerificationIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.RemoveUserVerificationIDs(ids...)
+// RemoveVerificationIDs removes the "verifications" edge to Verification entities by IDs.
+func (uu *UserUpdate) RemoveVerificationIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveVerificationIDs(ids...)
 	return uu
 }
 
-// RemoveUserVerifications removes "user_verifications" edges to UserVerification entities.
-func (uu *UserUpdate) RemoveUserVerifications(u ...*UserVerification) *UserUpdate {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveVerifications removes "verifications" edges to Verification entities.
+func (uu *UserUpdate) RemoveVerifications(v ...*Verification) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return uu.RemoveUserVerificationIDs(ids...)
+	return uu.RemoveVerificationIDs(ids...)
 }
 
 // ClearTokens clears all "tokens" edges to the Token entity.
@@ -430,28 +430,28 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.UserVerificationsCleared() {
+	if uu.mutation.VerificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UserVerificationsTable,
-			Columns: []string{user.UserVerificationsColumn},
+			Table:   user.VerificationsTable,
+			Columns: []string{user.VerificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(verification.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedUserVerificationsIDs(); len(nodes) > 0 && !uu.mutation.UserVerificationsCleared() {
+	if nodes := uu.mutation.RemovedVerificationsIDs(); len(nodes) > 0 && !uu.mutation.VerificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UserVerificationsTable,
-			Columns: []string{user.UserVerificationsColumn},
+			Table:   user.VerificationsTable,
+			Columns: []string{user.VerificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(verification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -459,15 +459,15 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.UserVerificationsIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.VerificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UserVerificationsTable,
-			Columns: []string{user.UserVerificationsColumn},
+			Table:   user.VerificationsTable,
+			Columns: []string{user.VerificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(verification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -644,19 +644,19 @@ func (uuo *UserUpdateOne) AddProjects(p ...*Project) *UserUpdateOne {
 	return uuo.AddProjectIDs(ids...)
 }
 
-// AddUserVerificationIDs adds the "user_verifications" edge to the UserVerification entity by IDs.
-func (uuo *UserUpdateOne) AddUserVerificationIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.AddUserVerificationIDs(ids...)
+// AddVerificationIDs adds the "verifications" edge to the Verification entity by IDs.
+func (uuo *UserUpdateOne) AddVerificationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddVerificationIDs(ids...)
 	return uuo
 }
 
-// AddUserVerifications adds the "user_verifications" edges to the UserVerification entity.
-func (uuo *UserUpdateOne) AddUserVerifications(u ...*UserVerification) *UserUpdateOne {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddVerifications adds the "verifications" edges to the Verification entity.
+func (uuo *UserUpdateOne) AddVerifications(v ...*Verification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return uuo.AddUserVerificationIDs(ids...)
+	return uuo.AddVerificationIDs(ids...)
 }
 
 // AddTokenIDs adds the "tokens" edge to the Token entity by IDs.
@@ -721,25 +721,25 @@ func (uuo *UserUpdateOne) RemoveProjects(p ...*Project) *UserUpdateOne {
 	return uuo.RemoveProjectIDs(ids...)
 }
 
-// ClearUserVerifications clears all "user_verifications" edges to the UserVerification entity.
-func (uuo *UserUpdateOne) ClearUserVerifications() *UserUpdateOne {
-	uuo.mutation.ClearUserVerifications()
+// ClearVerifications clears all "verifications" edges to the Verification entity.
+func (uuo *UserUpdateOne) ClearVerifications() *UserUpdateOne {
+	uuo.mutation.ClearVerifications()
 	return uuo
 }
 
-// RemoveUserVerificationIDs removes the "user_verifications" edge to UserVerification entities by IDs.
-func (uuo *UserUpdateOne) RemoveUserVerificationIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.RemoveUserVerificationIDs(ids...)
+// RemoveVerificationIDs removes the "verifications" edge to Verification entities by IDs.
+func (uuo *UserUpdateOne) RemoveVerificationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveVerificationIDs(ids...)
 	return uuo
 }
 
-// RemoveUserVerifications removes "user_verifications" edges to UserVerification entities.
-func (uuo *UserUpdateOne) RemoveUserVerifications(u ...*UserVerification) *UserUpdateOne {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveVerifications removes "verifications" edges to Verification entities.
+func (uuo *UserUpdateOne) RemoveVerifications(v ...*Verification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return uuo.RemoveUserVerificationIDs(ids...)
+	return uuo.RemoveVerificationIDs(ids...)
 }
 
 // ClearTokens clears all "tokens" edges to the Token entity.
@@ -967,28 +967,28 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.UserVerificationsCleared() {
+	if uuo.mutation.VerificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UserVerificationsTable,
-			Columns: []string{user.UserVerificationsColumn},
+			Table:   user.VerificationsTable,
+			Columns: []string{user.VerificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(verification.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedUserVerificationsIDs(); len(nodes) > 0 && !uuo.mutation.UserVerificationsCleared() {
+	if nodes := uuo.mutation.RemovedVerificationsIDs(); len(nodes) > 0 && !uuo.mutation.VerificationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UserVerificationsTable,
-			Columns: []string{user.UserVerificationsColumn},
+			Table:   user.VerificationsTable,
+			Columns: []string{user.VerificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(verification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -996,15 +996,15 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.UserVerificationsIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.VerificationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UserVerificationsTable,
-			Columns: []string{user.UserVerificationsColumn},
+			Table:   user.VerificationsTable,
+			Columns: []string{user.VerificationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userverification.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(verification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

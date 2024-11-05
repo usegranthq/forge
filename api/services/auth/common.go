@@ -14,6 +14,7 @@ import (
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent"
 	"github.com/usegranthq/backend/ent/user"
+	"github.com/usegranthq/backend/ent/verification"
 	"github.com/usegranthq/backend/external"
 	"github.com/usegranthq/backend/utils"
 )
@@ -48,9 +49,10 @@ func StartUserVerification(c *gin.Context, user *ent.User) {
 		return
 	}
 
-	_, err = db.Client.UserVerification.Create().
+	_, err = db.Client.Verification.Create().
 		SetUserID(user.ID).
 		SetAttemptID(attemptId).
+		SetType(verification.TypeSIGNUP).
 		SetCode(code).
 		SetExpiresAt(attemptExpiry).
 		Save(c)

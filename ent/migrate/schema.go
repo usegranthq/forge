@@ -146,26 +146,27 @@ var (
 			},
 		},
 	}
-	// UserVerificationsColumns holds the columns for the "user_verifications" table.
-	UserVerificationsColumns = []*schema.Column{
+	// VerificationsColumns holds the columns for the "verifications" table.
+	VerificationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "attempt_id", Type: field.TypeUUID},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"SIGNUP", "EMAIL_UPDATE"}},
 		{Name: "code", Type: field.TypeString},
 		{Name: "attempts", Type: field.TypeInt, Default: 0},
 		{Name: "expires_at", Type: field.TypeTime},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "user_user_verifications", Type: field.TypeUUID},
+		{Name: "user_verifications", Type: field.TypeUUID},
 	}
-	// UserVerificationsTable holds the schema information for the "user_verifications" table.
-	UserVerificationsTable = &schema.Table{
-		Name:       "user_verifications",
-		Columns:    UserVerificationsColumns,
-		PrimaryKey: []*schema.Column{UserVerificationsColumns[0]},
+	// VerificationsTable holds the schema information for the "verifications" table.
+	VerificationsTable = &schema.Table{
+		Name:       "verifications",
+		Columns:    VerificationsColumns,
+		PrimaryKey: []*schema.Column{VerificationsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "user_verifications_users_user_verifications",
-				Columns:    []*schema.Column{UserVerificationsColumns[7]},
+				Symbol:     "verifications_users_verifications",
+				Columns:    []*schema.Column{VerificationsColumns[8]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -179,7 +180,7 @@ var (
 		TokensTable,
 		UsersTable,
 		UserSessionsTable,
-		UserVerificationsTable,
+		VerificationsTable,
 	}
 )
 
@@ -189,5 +190,5 @@ func init() {
 	ProjectDomainsTable.ForeignKeys[0].RefTable = ProjectsTable
 	TokensTable.ForeignKeys[0].RefTable = UsersTable
 	UserSessionsTable.ForeignKeys[0].RefTable = UsersTable
-	UserVerificationsTable.ForeignKeys[0].RefTable = UsersTable
+	VerificationsTable.ForeignKeys[0].RefTable = UsersTable
 }

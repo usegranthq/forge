@@ -11,16 +11,18 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/usegranthq/backend/ent/user"
-	"github.com/usegranthq/backend/ent/userverification"
+	"github.com/usegranthq/backend/ent/verification"
 )
 
-// UserVerification is the model entity for the UserVerification schema.
-type UserVerification struct {
+// Verification is the model entity for the Verification schema.
+type Verification struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// AttemptID holds the value of the "attempt_id" field.
 	AttemptID uuid.UUID `json:"attempt_id,omitempty"`
+	// Type holds the value of the "type" field.
+	Type verification.Type `json:"type,omitempty"`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
 	// Attempts holds the value of the "attempts" field.
@@ -32,14 +34,14 @@ type UserVerification struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the UserVerificationQuery when eager-loading is set.
-	Edges                   UserVerificationEdges `json:"edges"`
-	user_user_verifications *uuid.UUID
-	selectValues            sql.SelectValues
+	// The values are being populated by the VerificationQuery when eager-loading is set.
+	Edges              VerificationEdges `json:"edges"`
+	user_verifications *uuid.UUID
+	selectValues       sql.SelectValues
 }
 
-// UserVerificationEdges holds the relations/edges for other nodes in the graph.
-type UserVerificationEdges struct {
+// VerificationEdges holds the relations/edges for other nodes in the graph.
+type VerificationEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -49,7 +51,7 @@ type UserVerificationEdges struct {
 
 // UserOrErr returns the User value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e UserVerificationEdges) UserOrErr() (*User, error) {
+func (e VerificationEdges) UserOrErr() (*User, error) {
 	if e.User != nil {
 		return e.User, nil
 	} else if e.loadedTypes[0] {
@@ -59,19 +61,19 @@ func (e UserVerificationEdges) UserOrErr() (*User, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*UserVerification) scanValues(columns []string) ([]any, error) {
+func (*Verification) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case userverification.FieldAttempts:
+		case verification.FieldAttempts:
 			values[i] = new(sql.NullInt64)
-		case userverification.FieldCode:
+		case verification.FieldType, verification.FieldCode:
 			values[i] = new(sql.NullString)
-		case userverification.FieldExpiresAt, userverification.FieldCreatedAt, userverification.FieldUpdatedAt:
+		case verification.FieldExpiresAt, verification.FieldCreatedAt, verification.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case userverification.FieldID, userverification.FieldAttemptID:
+		case verification.FieldID, verification.FieldAttemptID:
 			values[i] = new(uuid.UUID)
-		case userverification.ForeignKeys[0]: // user_user_verifications
+		case verification.ForeignKeys[0]: // user_verifications
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
@@ -81,123 +83,132 @@ func (*UserVerification) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the UserVerification fields.
-func (uv *UserVerification) assignValues(columns []string, values []any) error {
+// to the Verification fields.
+func (v *Verification) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case userverification.FieldID:
+		case verification.FieldID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
-				uv.ID = *value
+				v.ID = *value
 			}
-		case userverification.FieldAttemptID:
+		case verification.FieldAttemptID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field attempt_id", values[i])
 			} else if value != nil {
-				uv.AttemptID = *value
+				v.AttemptID = *value
 			}
-		case userverification.FieldCode:
+		case verification.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				v.Type = verification.Type(value.String)
+			}
+		case verification.FieldCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value.Valid {
-				uv.Code = value.String
+				v.Code = value.String
 			}
-		case userverification.FieldAttempts:
+		case verification.FieldAttempts:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field attempts", values[i])
 			} else if value.Valid {
-				uv.Attempts = int(value.Int64)
+				v.Attempts = int(value.Int64)
 			}
-		case userverification.FieldExpiresAt:
+		case verification.FieldExpiresAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field expires_at", values[i])
 			} else if value.Valid {
-				uv.ExpiresAt = value.Time
+				v.ExpiresAt = value.Time
 			}
-		case userverification.FieldCreatedAt:
+		case verification.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				uv.CreatedAt = value.Time
+				v.CreatedAt = value.Time
 			}
-		case userverification.FieldUpdatedAt:
+		case verification.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				uv.UpdatedAt = value.Time
+				v.UpdatedAt = value.Time
 			}
-		case userverification.ForeignKeys[0]:
+		case verification.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_user_verifications", values[i])
+				return fmt.Errorf("unexpected type %T for field user_verifications", values[i])
 			} else if value.Valid {
-				uv.user_user_verifications = new(uuid.UUID)
-				*uv.user_user_verifications = *value.S.(*uuid.UUID)
+				v.user_verifications = new(uuid.UUID)
+				*v.user_verifications = *value.S.(*uuid.UUID)
 			}
 		default:
-			uv.selectValues.Set(columns[i], values[i])
+			v.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the UserVerification.
+// Value returns the ent.Value that was dynamically selected and assigned to the Verification.
 // This includes values selected through modifiers, order, etc.
-func (uv *UserVerification) Value(name string) (ent.Value, error) {
-	return uv.selectValues.Get(name)
+func (v *Verification) Value(name string) (ent.Value, error) {
+	return v.selectValues.Get(name)
 }
 
-// QueryUser queries the "user" edge of the UserVerification entity.
-func (uv *UserVerification) QueryUser() *UserQuery {
-	return NewUserVerificationClient(uv.config).QueryUser(uv)
+// QueryUser queries the "user" edge of the Verification entity.
+func (v *Verification) QueryUser() *UserQuery {
+	return NewVerificationClient(v.config).QueryUser(v)
 }
 
-// Update returns a builder for updating this UserVerification.
-// Note that you need to call UserVerification.Unwrap() before calling this method if this UserVerification
+// Update returns a builder for updating this Verification.
+// Note that you need to call Verification.Unwrap() before calling this method if this Verification
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (uv *UserVerification) Update() *UserVerificationUpdateOne {
-	return NewUserVerificationClient(uv.config).UpdateOne(uv)
+func (v *Verification) Update() *VerificationUpdateOne {
+	return NewVerificationClient(v.config).UpdateOne(v)
 }
 
-// Unwrap unwraps the UserVerification entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the Verification entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (uv *UserVerification) Unwrap() *UserVerification {
-	_tx, ok := uv.config.driver.(*txDriver)
+func (v *Verification) Unwrap() *Verification {
+	_tx, ok := v.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: UserVerification is not a transactional entity")
+		panic("ent: Verification is not a transactional entity")
 	}
-	uv.config.driver = _tx.drv
-	return uv
+	v.config.driver = _tx.drv
+	return v
 }
 
 // String implements the fmt.Stringer.
-func (uv *UserVerification) String() string {
+func (v *Verification) String() string {
 	var builder strings.Builder
-	builder.WriteString("UserVerification(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", uv.ID))
+	builder.WriteString("Verification(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", v.ID))
 	builder.WriteString("attempt_id=")
-	builder.WriteString(fmt.Sprintf("%v", uv.AttemptID))
+	builder.WriteString(fmt.Sprintf("%v", v.AttemptID))
+	builder.WriteString(", ")
+	builder.WriteString("type=")
+	builder.WriteString(fmt.Sprintf("%v", v.Type))
 	builder.WriteString(", ")
 	builder.WriteString("code=")
-	builder.WriteString(uv.Code)
+	builder.WriteString(v.Code)
 	builder.WriteString(", ")
 	builder.WriteString("attempts=")
-	builder.WriteString(fmt.Sprintf("%v", uv.Attempts))
+	builder.WriteString(fmt.Sprintf("%v", v.Attempts))
 	builder.WriteString(", ")
 	builder.WriteString("expires_at=")
-	builder.WriteString(uv.ExpiresAt.Format(time.ANSIC))
+	builder.WriteString(v.ExpiresAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(uv.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(v.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(uv.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(v.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// UserVerifications is a parsable slice of UserVerification.
-type UserVerifications []*UserVerification
+// Verifications is a parsable slice of Verification.
+type Verifications []*Verification

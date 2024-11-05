@@ -10,6 +10,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/usegranthq/backend/config"
 	"github.com/usegranthq/backend/ent"
+	"github.com/usegranthq/backend/ent/migrate"
 )
 
 var Client *ent.Client
@@ -34,7 +35,11 @@ func Connect() {
 	}
 
 	// Run auto migration
-	if err := Client.Schema.Create(context.Background()); err != nil {
+	if err := Client.Schema.Create(
+		context.Background(),
+		migrate.WithDropIndex(true),
+		migrate.WithDropColumn(true),
+	); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
 
