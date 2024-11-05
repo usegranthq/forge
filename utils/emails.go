@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"embed"
 	"strings"
+
+	"github.com/lindell/go-burner-email-providers/burner"
 )
 
 //go:embed disposable_email_blocklist.conf
@@ -23,12 +25,19 @@ func (u *EmailsUtil) Init() {
 	f.Close()
 }
 
-func (u *EmailsUtil) IsDisposableEmail(email string) (disposable bool) {
+func (u *EmailsUtil) isInDisposableList(email string) bool {
 	segs := strings.Split(email, "@")
 	if len(segs) < 2 {
 		return false
 	}
+	_, disposable := disposableList[strings.ToLower(segs[len(segs)-1])]
+	return disposable
+}
 
-	_, disposable = disposableList[strings.ToLower(segs[len(segs)-1])]
-	return
+func (u *EmailsUtil) IsDisposableEmail(email string) bool {
+	if u.isInDisposableList(email) {
+		return true
+	}
+
+	return burner.IsBurnerEmail(email)
 }

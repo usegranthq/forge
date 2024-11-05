@@ -12,6 +12,7 @@ require (
 	github.com/gosimple/slug v1.14.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
+	github.com/lindell/go-burner-email-providers v1.0.113
 	github.com/sibiraj-s/unique-names-generator v0.4.0
 	github.com/sqids/sqids-go v0.4.1
 	go.uber.org/zap v1.27.0
