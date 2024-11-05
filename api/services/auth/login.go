@@ -19,11 +19,17 @@ type loginRequest struct {
 func Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Log.Errorf("Error binding login request: %v", err)
 		utils.HttpError.BadRequest(c, err.Error())
 		return
 	}
 
+	l := utils.Log.With(
+		"user_email", req.Email,
+	)
+
 	if err := VerifyCaptcha(c, req.CfToken); err != nil {
+		l.Errorf("Error verifying captcha: %v", err)
 		return
 	}
 
@@ -37,11 +43,13 @@ func Login(c *gin.Context) {
 	if err != nil {
 		if ent.IsNotFound(err) {
 			if err := DoEmailSignup(c, userEmail); err != nil {
+				l.Errorf("Error doing email signup: %v", err)
 				return
 			}
 			c.JSON(http.StatusCreated, gin.H{})
 			return
 		}
+		l.Errorf("Error getting user: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}

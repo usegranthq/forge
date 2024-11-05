@@ -19,11 +19,17 @@ func Signup(c *gin.Context) {
 		return
 	}
 
+	l := utils.Log.With(
+		"user_email", req.Email,
+	)
+
 	if err := VerifyCaptcha(c, req.CfToken); err != nil {
+		l.Errorf("Error verifying captcha: %v", err)
 		return
 	}
 
 	if err := DoEmailSignup(c, req.Email); err != nil {
+		l.Errorf("Error doing email signup: %v", err)
 		return
 	}
 

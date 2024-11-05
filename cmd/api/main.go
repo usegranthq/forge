@@ -34,5 +34,7 @@ func main() {
 	api.SetupRoutes(router)
 
 	port := config.Get("SERVER_PORT")
+	utils.Log.Infof("Starting server on port %s", port)
+
 	router.Run(":" + port)
 }

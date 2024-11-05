@@ -8,6 +8,7 @@ import (
 	"github.com/usegranthq/backend/constants"
 	"github.com/usegranthq/backend/ent"
 	"github.com/usegranthq/backend/utils"
+	"go.uber.org/zap"
 )
 
 const sessionRefreshThreshold = 12 * time.Hour
@@ -21,6 +22,7 @@ func unauthorized(c *gin.Context) {
 // if session is less than 12 hours from expiry, refresh the session,
 // else do nothing
 func Refresh(c *gin.Context) {
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 	session, ok := c.MustGet("session").(*ent.UserSession)
 	if !ok {
 		unauthorized(c)
@@ -41,12 +43,14 @@ func Refresh(c *gin.Context) {
 
 	sessionCookie, err := utils.Jwt.SignToken(claims)
 	if err != nil {
+		l.Errorf("Error signing session token: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
 
 	_, err = session.Update().SetExpiresAt(sessionExpiry).Save(c)
 	if err != nil {
+		l.Errorf("Error updating session: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}

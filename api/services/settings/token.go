@@ -11,6 +11,7 @@ import (
 	"github.com/usegranthq/backend/ent/token"
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/utils"
+	"go.uber.org/zap"
 )
 
 // expires_at is optional, if not provided, the token will never expire
@@ -22,6 +23,7 @@ type createTokenRequest struct {
 
 func CreateToken(c *gin.Context) {
 	user := c.MustGet("user").(*ent.User)
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 
 	var req createTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -37,6 +39,7 @@ func CreateToken(c *gin.Context) {
 
 	apiToken, err := utils.GenerateToken("ug_api")
 	if err != nil {
+		l.Errorf("Error generating token: %v", err)
 		utils.HttpError.InternalServerError(c, err.Error())
 		return
 	}
@@ -52,6 +55,7 @@ func CreateToken(c *gin.Context) {
 
 	token, err := tokenQuery.Save(c)
 	if err != nil {
+		l.Errorf("Error creating token: %v", err)
 		utils.HttpError.InternalServerError(c, err.Error())
 		return
 	}
@@ -76,13 +80,14 @@ type listTokensResponse struct {
 
 func ListTokens(c *gin.Context) {
 	currentUser := c.MustGet("user").(*ent.User)
-
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 	tokens, err := db.Client.Token.Query().
 		Where(token.HasUserWith(user.ID(currentUser.ID))).
 		Order(ent.Desc(token.FieldCreatedAt)).
 		All(c)
 
 	if err != nil {
+		l.Errorf("Error getting tokens: %v", err)
 		utils.HttpError.InternalServerError(c, err.Error())
 		return
 	}
@@ -111,7 +116,7 @@ func ListTokens(c *gin.Context) {
 
 func DeleteToken(c *gin.Context) {
 	currentUser := c.MustGet("user").(*ent.User)
-
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 	tokenID := c.Param("tokenID")
 	if _, err := uuid.Parse(tokenID); err != nil {
 		utils.HttpError.BadRequest(c, "invalid token id")
@@ -123,6 +128,7 @@ func DeleteToken(c *gin.Context) {
 		Where(token.HasUserWith(user.ID(currentUser.ID))).
 		Exec(c)
 	if err != nil {
+		l.Errorf("Error deleting token: %v", err)
 		utils.HttpError.InternalServerError(c, err.Error())
 		return
 	}

@@ -33,6 +33,7 @@ func Auth() gin.HandlerFunc {
 		})
 
 		if err != nil {
+			utils.Log.Errorf("Error parsing session cookie: %v", err)
 			unauthorized(c)
 			return
 		}
@@ -73,14 +74,21 @@ func Auth() gin.HandlerFunc {
 		// get user id from session
 		user, err := session.QueryUser().Only(c)
 		if err != nil {
+			utils.Log.Errorf("Error getting user from session: %v", err)
 			unauthorized(c)
 			return
 		}
+
+		l := utils.Log.With(
+			"user_id", user.ID,
+			"user_email", user.Email,
+		)
 
 		c.Set("user", user)
 		c.Set("userID", user.ID)
 		c.Set("sessionID", session.ID)
 		c.Set("session", session)
+		c.Set("logger", l)
 		c.Next()
 	}
 }

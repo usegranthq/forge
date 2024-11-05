@@ -20,6 +20,11 @@ import (
 )
 
 func StartUserVerification(c *gin.Context, user *ent.User) {
+	l := utils.Log.With(
+		"user_id", user.ID,
+		"user_email", user.Email,
+	)
+
 	attemptExpiry := time.Now().Add(30 * time.Minute)
 	attemptId := uuid.New()
 
@@ -45,6 +50,7 @@ func StartUserVerification(c *gin.Context, user *ent.User) {
 
 	token, err := utils.Jwt.SignToken(claims)
 	if err != nil {
+		l.Errorf("Error signing verification token: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -57,12 +63,14 @@ func StartUserVerification(c *gin.Context, user *ent.User) {
 		SetExpiresAt(attemptExpiry).
 		Save(c)
 	if err != nil {
+		l.Errorf("Error creating verification: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
 
 	utils.SafeRoutine(func() {
 		if err := external.Postman.SendLoginEmail(c, user.Email, code); err != nil {
+			l.Errorf("Error sending login email: %v", err)
 			utils.HttpError.InternalServerError(c)
 			return
 		}
@@ -73,8 +81,14 @@ func StartUserVerification(c *gin.Context, user *ent.User) {
 }
 
 func CreateUserSession(c *gin.Context, user *ent.User) {
+	l := utils.Log.With(
+		"user_id", user.ID,
+		"user_email", user.Email,
+	)
+
 	sessionId, err := utils.GenerateRandom(32)
 	if err != nil {
+		l.Errorf("Error generating session ID: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -87,6 +101,7 @@ func CreateUserSession(c *gin.Context, user *ent.User) {
 
 	sessionCookie, err := utils.Jwt.SignToken(claims)
 	if err != nil {
+		l.Errorf("Error signing session token: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -96,12 +111,14 @@ func CreateUserSession(c *gin.Context, user *ent.User) {
 		SetToken(sessionId).
 		SetExpiresAt(sessionExpiry).
 		Save(c); err != nil {
+		l.Errorf("Error creating user session: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
 
 	_, err = db.Client.User.UpdateOneID(user.ID).SetLastLogin(time.Now()).Save(c)
 	if err != nil {
+		l.Errorf("Error updating user last login: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -115,6 +132,7 @@ func VerifyCaptcha(c *gin.Context, token string) error {
 	turnstileResponse, err := external.Turnstile.Verify(token)
 
 	if err != nil {
+		utils.Log.Errorf("Failed to verify captcha: %v", err)
 		utils.HttpError.InternalServerError(c, "Failed to verify captcha")
 		return err
 	}
@@ -130,7 +148,12 @@ func VerifyCaptcha(c *gin.Context, token string) error {
 }
 
 func DoEmailSignup(c *gin.Context, email string) error {
+	l := utils.Log.With(
+		"user_email", email,
+	)
+
 	if utils.Emails.IsDisposableEmail(email) {
+		l.Errorf("Disposable email not allowed")
 		utils.HttpError.BadRequest(c, "Disposable emails are not allowed. Note: when you delete your account, we delete everything without a trace.")
 		return errors.New("disposable email not allowed")
 	}
@@ -144,6 +167,7 @@ func DoEmailSignup(c *gin.Context, email string) error {
 		utils.HttpError.Conflict(c, "User already exists")
 		return err
 	} else if !ent.IsNotFound(err) {
+		l.Errorf("Error checking if user exists: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return err
 	}
@@ -155,6 +179,7 @@ func DoEmailSignup(c *gin.Context, email string) error {
 		Save(c)
 
 	if err != nil {
+		l.Errorf("Error creating user: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return err
 	}
@@ -164,6 +189,11 @@ func DoEmailSignup(c *gin.Context, email string) error {
 }
 
 func DoOauthSignup(c *gin.Context, email string, provider user.Provider) error {
+	l := utils.Log.With(
+		"user_email", email,
+		"provider", provider,
+	)
+
 	err := db.Client.User.
 		Create().
 		SetEmail(email).
@@ -174,6 +204,7 @@ func DoOauthSignup(c *gin.Context, email string, provider user.Provider) error {
 		Exec(c)
 
 	if err != nil {
+		l.Errorf("Error creating user: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return err
 	}
@@ -184,6 +215,7 @@ func DoOauthSignup(c *gin.Context, email string, provider user.Provider) error {
 		Only(c)
 
 	if err != nil {
+		l.Errorf("Error getting user: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return err
 	}

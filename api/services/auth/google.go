@@ -11,6 +11,7 @@ import (
 func GoogleLogin(c *gin.Context) {
 	url, err := external.Google.GenerateOauthUrl()
 	if err != nil {
+		utils.Log.Errorf("Error generating google oauth url: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}

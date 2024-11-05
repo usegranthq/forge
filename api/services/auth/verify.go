@@ -35,6 +35,7 @@ func deleteVerificationCode(c *gin.Context, attemptID uuid.UUID) {
 func verifyToken(c *gin.Context, inputToken string, code string) (*ent.User, int) {
 	token, err := utils.Jwt.DecodeToken(inputToken)
 	if err != nil {
+		utils.Log.Errorf("Error decoding token: %v", err)
 		return nil, VerificationInvalidCode
 	}
 
@@ -60,6 +61,7 @@ func verifyToken(c *gin.Context, inputToken string, code string) (*ent.User, int
 		).
 		Only(c)
 	if err != nil {
+		utils.Log.Errorf("Error getting verification: %v", err)
 		return nil, VerificationInvalidCode
 	}
 
@@ -73,6 +75,7 @@ func verifyToken(c *gin.Context, inputToken string, code string) (*ent.User, int
 		SetAttempts(userVerification.Attempts + 1).
 		Save(c)
 	if err != nil {
+		utils.Log.Errorf("Error updating verification: %v", err)
 		return nil, VerificationMaxAttemptsReached
 	}
 
@@ -82,6 +85,7 @@ func verifyToken(c *gin.Context, inputToken string, code string) (*ent.User, int
 
 	user, err := userVerification.QueryUser().Only(c)
 	if err != nil {
+		utils.Log.Errorf("Error getting user: %v", err)
 		return nil, VerificationUnknown
 	}
 
@@ -117,6 +121,7 @@ func Verify(c *gin.Context) {
 		case VerificationMaxAttemptsReached:
 			utils.HttpError.BadRequest(c, "Maximum verification attempts reached")
 		default:
+			utils.Log.Errorf("Failed to verify token: %v", errCode)
 			utils.HttpError.InternalServerError(c)
 		}
 		return
@@ -124,6 +129,7 @@ func Verify(c *gin.Context) {
 
 	if user.VerifiedAt.IsZero() {
 		if _, err := user.Update().SetVerifiedAt(time.Now()).Save(c); err != nil {
+			utils.Log.Errorf("Error updating user verified at: %v", err)
 			utils.HttpError.InternalServerError(c)
 			return
 		}
@@ -152,11 +158,13 @@ func VerifyGithub(c *gin.Context) {
 
 	primaryEmail, _, err := external.Github.GetGithubUser(req.Code)
 	if err != nil {
+		utils.Log.Errorf("Error getting github user: %v", err)
 		utils.HttpError.BadRequest(c, "Unable to fetch user details")
 		return
 	}
 
 	if err := DoOauthSignup(c, primaryEmail, user.ProviderGITHUB); err != nil {
+		utils.Log.Errorf("Error doing github oauth signup: %v", err)
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{})
@@ -176,11 +184,13 @@ func VerifyGoogle(c *gin.Context) {
 
 	primaryEmail, _, err := external.Google.GetGoogleUser(req.Code)
 	if err != nil {
+		utils.Log.Errorf("Error getting google user: %v", err)
 		utils.HttpError.BadRequest(c, "Unable to fetch user details")
 		return
 	}
 
 	if err := DoOauthSignup(c, primaryEmail, user.ProviderGOOGLE); err != nil {
+		utils.Log.Errorf("Error doing google oauth signup: %v", err)
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{})

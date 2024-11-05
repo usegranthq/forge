@@ -8,6 +8,7 @@ import (
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent"
 	"github.com/usegranthq/backend/utils"
+	"go.uber.org/zap"
 )
 
 func GetUser(c *gin.Context) {
@@ -22,11 +23,11 @@ func GetUser(c *gin.Context) {
 
 func DeleteUser(c *gin.Context) {
 	meUser := c.MustGet("user").(*ent.User)
-
-	// delete also clients in knox
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 
 	err := db.Client.User.DeleteOneID(meUser.ID).Exec(c)
 	if err != nil {
+		l.Errorf("Error deleting user: %v", err)
 		utils.HttpError.InternalServerError(c, err.Error())
 		return
 	}

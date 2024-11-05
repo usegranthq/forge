@@ -14,6 +14,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/sibiraj-s/unique-names-generator v0.4.0
 	github.com/sqids/sqids-go v0.4.1
+	go.uber.org/zap v1.27.0
 	golang.org/x/oauth2 v0.23.0
 	google.golang.org/api v0.204.0
 )
@@ -66,6 +67,7 @@ require (
 	go.opentelemetry.io/otel v1.31.0 // indirect
 	go.opentelemetry.io/otel/metric v1.31.0 // indirect
 	go.opentelemetry.io/otel/trace v1.31.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/arch v0.11.0 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
 	golang.org/x/mod v0.21.0 // indirect

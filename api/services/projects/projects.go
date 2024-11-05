@@ -16,6 +16,7 @@ import (
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/external"
 	"github.com/usegranthq/backend/utils"
+	"go.uber.org/zap"
 )
 
 type projectResponse struct {
@@ -44,6 +45,7 @@ var UpdateProject = db.GinHandlerWithTx(updateProjectHandler)
 
 func createProjectHandler(c *gin.Context, tx *ent.Tx) error {
 	userID := c.MustGet("userID").(uuid.UUID)
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 
 	type createProjectRequest struct {
 		Name        string `json:"name" binding:"required,min=3,max=32"`
@@ -73,6 +75,7 @@ func createProjectHandler(c *gin.Context, tx *ent.Tx) error {
 		Save(c)
 
 	if err != nil {
+		l.Errorf("Error creating project: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return err
 	}
@@ -87,6 +90,7 @@ func createProjectHandler(c *gin.Context, tx *ent.Tx) error {
 	}
 	err = external.Oidc.Request("POST", "/projects", payload, nil)
 	if err != nil {
+		l.Errorf("Error registering project in knox provider: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return err
 	}
@@ -98,17 +102,20 @@ func createProjectHandler(c *gin.Context, tx *ent.Tx) error {
 func deleteProjectHandler(c *gin.Context, tx *ent.Tx) error {
 	projectID := c.MustGet("projectID").(uuid.UUID)
 	currentUser := c.MustGet("user").(*ent.User)
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 
 	err := tx.Project.DeleteOneID(projectID).
 		Where(project.HasUserWith(user.ID(currentUser.ID))).
 		Exec(c)
 	if err != nil {
+		l.Errorf("Error deleting project in database: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return err
 	}
 
 	err = external.Oidc.Request("DELETE", "/projects/"+projectID.String(), nil, nil)
 	if err != nil {
+		l.Errorf("Error deleting project in knox provider: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return err
 	}
@@ -120,7 +127,7 @@ func deleteProjectHandler(c *gin.Context, tx *ent.Tx) error {
 func updateProjectHandler(c *gin.Context, tx *ent.Tx) error {
 	projectID := c.MustGet("projectID").(uuid.UUID)
 	currentUser := c.MustGet("user").(*ent.User)
-
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 	type updateProjectRequest struct {
 		Name        string `json:"name" binding:"required,min=3,max=32"`
 		Description string `json:"description" binding:"required,min=3,max=100"`
@@ -139,6 +146,7 @@ func updateProjectHandler(c *gin.Context, tx *ent.Tx) error {
 		SetDescription(req.Description).
 		Save(c)
 	if err != nil {
+		l.Errorf("Error updating project in database: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return err
 	}
@@ -149,6 +157,7 @@ func updateProjectHandler(c *gin.Context, tx *ent.Tx) error {
 	}
 	err = external.Oidc.Request("PUT", "/projects/"+projectID.String(), payload, nil)
 	if err != nil {
+		l.Errorf("Error updating project in knox provider: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return err
 	}
@@ -159,11 +168,12 @@ func updateProjectHandler(c *gin.Context, tx *ent.Tx) error {
 
 func ListProjects(c *gin.Context) {
 	currentUser := c.MustGet("user").(*ent.User)
-
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 	projects, err := db.Client.Project.Query().
 		Where(project.HasUserWith(user.ID(currentUser.ID))).
 		All(c)
 	if err != nil {
+		l.Errorf("Error getting projects: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -179,7 +189,7 @@ func ListProjects(c *gin.Context) {
 func GetProject(c *gin.Context) {
 	projectID := c.MustGet("projectID").(uuid.UUID)
 	currentUser := c.MustGet("user").(*ent.User)
-
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 	project, err := db.Client.Project.Query().
 		Where(
 			project.ID(projectID),
@@ -190,6 +200,7 @@ func GetProject(c *gin.Context) {
 		if ent.IsNotFound(err) {
 			utils.HttpError.NotFound(c)
 		} else {
+			l.Errorf("Error getting project: %v", err)
 			utils.HttpError.InternalServerError(c)
 		}
 		return

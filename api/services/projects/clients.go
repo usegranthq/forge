@@ -13,6 +13,7 @@ import (
 	"github.com/usegranthq/backend/ent/project"
 	"github.com/usegranthq/backend/external"
 	"github.com/usegranthq/backend/utils"
+	"go.uber.org/zap"
 )
 
 type clientResponse struct {
@@ -37,6 +38,7 @@ func toClientResponse(client *ent.OidcClient) clientResponse {
 
 func CreateOidcClient(c *gin.Context) {
 	projectID := c.MustGet("projectID").(uuid.UUID)
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 
 	type createOidcClientRequest struct {
 		Name     string `json:"name" binding:"required"`
@@ -64,6 +66,7 @@ func CreateOidcClient(c *gin.Context) {
 
 	var response createOidcClientResponse
 	if err := external.Oidc.Request("POST", registerUrl, payload, &response); err != nil {
+		l.Errorf("Error creating oidc client in knox provider: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -78,6 +81,7 @@ func CreateOidcClient(c *gin.Context) {
 		Save(c)
 
 	if err != nil {
+		l.Errorf("Error creating oidc client in database: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -88,6 +92,7 @@ func CreateOidcClient(c *gin.Context) {
 func GetToken(c *gin.Context) {
 	clientID := c.MustGet("clientID").(uuid.UUID)
 	projectID := c.MustGet("projectID").(uuid.UUID)
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 
 	var response struct {
 		AccessToken string `json:"access_token"`
@@ -100,11 +105,13 @@ func GetToken(c *gin.Context) {
 		).
 		Only(c)
 	if err != nil {
+		l.Errorf("Error getting oidc client: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
 
 	if err := external.Oidc.RequestToken(c, oidcClient.ClientRefID, &response); err != nil {
+		l.Errorf("Error requesting token from knox provider: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -116,12 +123,14 @@ func GetToken(c *gin.Context) {
 
 func ListOidcClients(c *gin.Context) {
 	projectID := c.MustGet("projectID").(uuid.UUID)
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 
 	clients, err := db.Client.OidcClient.
 		Query().
 		Where(oidcclient.HasProjectWith(project.ID(projectID))).
 		All(c)
 	if err != nil {
+		l.Errorf("Error getting oidc clients: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -137,9 +146,11 @@ func ListOidcClients(c *gin.Context) {
 func DeleteOidcClient(c *gin.Context) {
 	clientID := c.MustGet("clientID").(uuid.UUID)
 	projectID := c.MustGet("projectID").(uuid.UUID)
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 
 	oidcClient, err := db.Client.OidcClient.Get(c, clientID)
 	if err != nil {
+		l.Errorf("Error getting oidc client: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -147,6 +158,7 @@ func DeleteOidcClient(c *gin.Context) {
 	var registerUrl = fmt.Sprintf("projects/%s/clients/%s", projectID.String(), oidcClient.ClientRefID)
 
 	if err := external.Oidc.Request("DELETE", registerUrl, nil, nil); err != nil {
+		l.Errorf("Error deleting oidc client in knox provider: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}
@@ -155,6 +167,7 @@ func DeleteOidcClient(c *gin.Context) {
 		Where(oidcclient.HasProjectWith(project.ID(projectID))).
 		Exec(c)
 	if err != nil {
+		l.Errorf("Error deleting oidc client in database: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}

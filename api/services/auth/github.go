@@ -11,6 +11,7 @@ import (
 func GithubLogin(c *gin.Context) {
 	url, err := external.Github.GenerateOauthUrl()
 	if err != nil {
+		utils.Log.Errorf("Error generating github oauth url: %v", err)
 		utils.HttpError.InternalServerError(c)
 		return
 	}

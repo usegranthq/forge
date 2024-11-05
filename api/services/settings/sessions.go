@@ -11,6 +11,7 @@ import (
 	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/usersession"
 	"github.com/usegranthq/backend/utils"
+	"go.uber.org/zap"
 )
 
 type listSessionsResponse struct {
@@ -22,6 +23,7 @@ type listSessionsResponse struct {
 func ListSessions(c *gin.Context) {
 	currentUser := c.MustGet("user").(*ent.User)
 	currentSessionID := c.MustGet("sessionID").(uuid.UUID)
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 
 	sessions, err := db.Client.UserSession.Query().
 		Where(
@@ -31,6 +33,7 @@ func ListSessions(c *gin.Context) {
 		Order(ent.Desc(usersession.FieldCreatedAt)).
 		All(c)
 	if err != nil {
+		l.Errorf("Error getting sessions: %v", err)
 		utils.HttpError.InternalServerError(c, err.Error())
 		return
 	}
@@ -49,6 +52,7 @@ func ListSessions(c *gin.Context) {
 
 func DeleteSession(c *gin.Context) {
 	currentUser := c.MustGet("user").(*ent.User)
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 
 	sessionID := c.Param("sessionID")
 	if sessionID == "" {
@@ -58,6 +62,7 @@ func DeleteSession(c *gin.Context) {
 
 	parsedSessionID, err := uuid.Parse(sessionID)
 	if err != nil {
+		l.Errorf("Invalid session ID: %v", err)
 		utils.HttpError.BadRequest(c, "Invalid session ID")
 		return
 	}
@@ -69,12 +74,14 @@ func DeleteSession(c *gin.Context) {
 		).
 		Only(c)
 	if err != nil {
+		l.Errorf("Session not found: %v", err)
 		utils.HttpError.NotFound(c, "Session not found")
 		return
 	}
 
 	_, err = db.Client.UserSession.Delete().Where(usersession.ID(session.ID)).Exec(c)
 	if err != nil {
+		l.Errorf("Error deleting session: %v", err)
 		utils.HttpError.InternalServerError(c, err.Error())
 		return
 	}
@@ -85,7 +92,7 @@ func DeleteSession(c *gin.Context) {
 func DeleteAllOtherSessions(c *gin.Context) {
 	currentUser := c.MustGet("user").(*ent.User)
 	currentSessionID := c.MustGet("sessionID").(uuid.UUID)
-
+	l := c.MustGet("logger").(*zap.SugaredLogger)
 	_, err := db.Client.UserSession.Delete().
 		Where(
 			usersession.HasUserWith(user.ID(currentUser.ID)),
@@ -93,6 +100,7 @@ func DeleteAllOtherSessions(c *gin.Context) {
 		).
 		Exec(c)
 	if err != nil {
+		l.Errorf("Error deleting all other sessions: %v", err)
 		utils.HttpError.InternalServerError(c, err.Error())
 		return
 	}
