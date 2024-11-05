@@ -15,6 +15,7 @@ func ValidateClient() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		projectID := c.MustGet("projectID").(uuid.UUID)
 		clientID := c.Param("clientID")
+
 		l := c.MustGet("logger").(*zap.SugaredLogger)
 
 		client, err := db.Client.OidcClient.Query().Where(
@@ -29,6 +30,7 @@ func ValidateClient() gin.HandlerFunc {
 				utils.Log.Errorf("Error getting client: %v", err)
 				utils.HttpError.InternalServerError(c)
 			}
+			c.Abort()
 			return
 		}
 

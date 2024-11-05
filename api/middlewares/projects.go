@@ -29,6 +29,7 @@ func ValidateProject() gin.HandlerFunc {
 				utils.Log.Errorf("Error getting project: %v", err)
 				utils.HttpError.InternalServerError(c)
 			}
+			c.Abort()
 			return
 		}
 
