@@ -3,6 +3,7 @@
 package user
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -23,6 +24,8 @@ const (
 	FieldLastLogin = "last_login"
 	// FieldVerifiedAt holds the string denoting the verified_at field in the database.
 	FieldVerifiedAt = "verified_at"
+	// FieldProvider holds the string denoting the provider field in the database.
+	FieldProvider = "provider"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -74,6 +77,7 @@ var Columns = []string{
 	FieldEmail,
 	FieldLastLogin,
 	FieldVerifiedAt,
+	FieldProvider,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -103,6 +107,30 @@ var (
 	DefaultID func() uuid.UUID
 )
 
+// Provider defines the type for the "provider" enum field.
+type Provider string
+
+// Provider values.
+const (
+	ProviderGOOGLE Provider = "GOOGLE"
+	ProviderGITHUB Provider = "GITHUB"
+	ProviderEMAIL  Provider = "EMAIL"
+)
+
+func (pr Provider) String() string {
+	return string(pr)
+}
+
+// ProviderValidator is a validator for the "provider" field enum values. It is called by the builders before save.
+func ProviderValidator(pr Provider) error {
+	switch pr {
+	case ProviderGOOGLE, ProviderGITHUB, ProviderEMAIL:
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for provider field: %q", pr)
+	}
+}
+
 // OrderOption defines the ordering options for the User queries.
 type OrderOption func(*sql.Selector)
 
@@ -129,6 +157,11 @@ func ByLastLogin(opts ...sql.OrderTermOption) OrderOption {
 // ByVerifiedAt orders the results by the verified_at field.
 func ByVerifiedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVerifiedAt, opts...).ToFunc()
+}
+
+// ByProvider orders the results by the provider field.
+func ByProvider(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProvider, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

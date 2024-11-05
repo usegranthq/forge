@@ -23,6 +23,7 @@ func (User) Fields() []ent.Field {
 		field.String("email").NotEmpty().Unique(),
 		field.Time("last_login").Optional(),
 		field.Time("verified_at").Optional(),
+		field.Enum("provider").Values("GOOGLE", "GITHUB", "EMAIL"),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

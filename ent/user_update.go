@@ -87,6 +87,20 @@ func (uu *UserUpdate) ClearVerifiedAt() *UserUpdate {
 	return uu
 }
 
+// SetProvider sets the "provider" field.
+func (uu *UserUpdate) SetProvider(u user.Provider) *UserUpdate {
+	uu.mutation.SetProvider(u)
+	return uu
+}
+
+// SetNillableProvider sets the "provider" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableProvider(u *user.Provider) *UserUpdate {
+	if u != nil {
+		uu.SetProvider(*u)
+	}
+	return uu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
@@ -285,6 +299,11 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
+	if v, ok := uu.mutation.Provider(); ok {
+		if err := user.ProviderValidator(v); err != nil {
+			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "User.provider": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -314,6 +333,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.VerifiedAtCleared() {
 		_spec.ClearField(user.FieldVerifiedAt, field.TypeTime)
+	}
+	if value, ok := uu.mutation.Provider(); ok {
+		_spec.SetField(user.FieldProvider, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -572,6 +594,20 @@ func (uuo *UserUpdateOne) ClearVerifiedAt() *UserUpdateOne {
 	return uuo
 }
 
+// SetProvider sets the "provider" field.
+func (uuo *UserUpdateOne) SetProvider(u user.Provider) *UserUpdateOne {
+	uuo.mutation.SetProvider(u)
+	return uuo
+}
+
+// SetNillableProvider sets the "provider" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableProvider(u *user.Provider) *UserUpdateOne {
+	if u != nil {
+		uuo.SetProvider(*u)
+	}
+	return uuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
@@ -783,6 +819,11 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
+	if v, ok := uuo.mutation.Provider(); ok {
+		if err := user.ProviderValidator(v); err != nil {
+			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "User.provider": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -829,6 +870,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.VerifiedAtCleared() {
 		_spec.ClearField(user.FieldVerifiedAt, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.Provider(); ok {
+		_spec.SetField(user.FieldProvider, field.TypeEnum, value)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)

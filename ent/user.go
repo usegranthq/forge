@@ -26,6 +26,8 @@ type User struct {
 	LastLogin time.Time `json:"last_login,omitempty"`
 	// VerifiedAt holds the value of the "verified_at" field.
 	VerifiedAt time.Time `json:"verified_at,omitempty"`
+	// Provider holds the value of the "provider" field.
+	Provider user.Provider `json:"provider,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -92,7 +94,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldEmail:
+		case user.FieldEmail, user.FieldProvider:
 			values[i] = new(sql.NullString)
 		case user.FieldLastLogin, user.FieldVerifiedAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -142,6 +144,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field verified_at", values[i])
 			} else if value.Valid {
 				u.VerifiedAt = value.Time
+			}
+		case user.FieldProvider:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field provider", values[i])
+			} else if value.Valid {
+				u.Provider = user.Provider(value.String)
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -222,6 +230,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("verified_at=")
 	builder.WriteString(u.VerifiedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("provider=")
+	builder.WriteString(fmt.Sprintf("%v", u.Provider))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))

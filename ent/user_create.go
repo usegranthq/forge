@@ -76,6 +76,12 @@ func (uc *UserCreate) SetNillableVerifiedAt(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetProvider sets the "provider" field.
+func (uc *UserCreate) SetProvider(u user.Provider) *UserCreate {
+	uc.mutation.SetProvider(u)
+	return uc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -244,6 +250,14 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
+	if _, ok := uc.mutation.Provider(); !ok {
+		return &ValidationError{Name: "provider", err: errors.New(`ent: missing required field "User.provider"`)}
+	}
+	if v, ok := uc.mutation.Provider(); ok {
+		if err := user.ProviderValidator(v); err != nil {
+			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "User.provider": %w`, err)}
+		}
+	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
 	}
@@ -301,6 +315,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.VerifiedAt(); ok {
 		_spec.SetField(user.FieldVerifiedAt, field.TypeTime, value)
 		_node.VerifiedAt = value
+	}
+	if value, ok := uc.mutation.Provider(); ok {
+		_spec.SetField(user.FieldProvider, field.TypeEnum, value)
+		_node.Provider = value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
@@ -474,6 +492,18 @@ func (u *UserUpsert) ClearVerifiedAt() *UserUpsert {
 	return u
 }
 
+// SetProvider sets the "provider" field.
+func (u *UserUpsert) SetProvider(v user.Provider) *UserUpsert {
+	u.Set(user.FieldProvider, v)
+	return u
+}
+
+// UpdateProvider sets the "provider" field to the value that was provided on create.
+func (u *UserUpsert) UpdateProvider() *UserUpsert {
+	u.SetExcluded(user.FieldProvider)
+	return u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (u *UserUpsert) SetUpdatedAt(v time.Time) *UserUpsert {
 	u.Set(user.FieldUpdatedAt, v)
@@ -593,6 +623,20 @@ func (u *UserUpsertOne) UpdateVerifiedAt() *UserUpsertOne {
 func (u *UserUpsertOne) ClearVerifiedAt() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearVerifiedAt()
+	})
+}
+
+// SetProvider sets the "provider" field.
+func (u *UserUpsertOne) SetProvider(v user.Provider) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetProvider(v)
+	})
+}
+
+// UpdateProvider sets the "provider" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateProvider() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateProvider()
 	})
 }
 
@@ -884,6 +928,20 @@ func (u *UserUpsertBulk) UpdateVerifiedAt() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearVerifiedAt() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearVerifiedAt()
+	})
+}
+
+// SetProvider sets the "provider" field.
+func (u *UserUpsertBulk) SetProvider(v user.Provider) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetProvider(v)
+	})
+}
+
+// UpdateProvider sets the "provider" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateProvider() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateProvider()
 	})
 }
 

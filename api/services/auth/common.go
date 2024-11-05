@@ -149,6 +149,7 @@ func DoEmailSignup(c *gin.Context, email string) error {
 	newUser, err := db.Client.User.
 		Create().
 		SetEmail(email).
+		SetProvider(user.ProviderEMAIL).
 		Save(c)
 
 	if err != nil {
@@ -160,10 +161,11 @@ func DoEmailSignup(c *gin.Context, email string) error {
 	return nil
 }
 
-func DoOauthSignup(c *gin.Context, email string) error {
+func DoOauthSignup(c *gin.Context, email string, provider user.Provider) error {
 	err := db.Client.User.
 		Create().
 		SetEmail(email).
+		SetProvider(provider).
 		SetVerifiedAt(time.Now()).
 		OnConflictColumns(user.FieldEmail).
 		Ignore().

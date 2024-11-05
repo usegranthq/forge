@@ -10,6 +10,7 @@ import (
 	"github.com/usegranthq/backend/constants"
 	"github.com/usegranthq/backend/db"
 	"github.com/usegranthq/backend/ent"
+	"github.com/usegranthq/backend/ent/user"
 	"github.com/usegranthq/backend/ent/userverification"
 	"github.com/usegranthq/backend/external"
 	"github.com/usegranthq/backend/utils"
@@ -152,7 +153,7 @@ func VerifyGithub(c *gin.Context) {
 		return
 	}
 
-	if err := DoOauthSignup(c, primaryEmail); err != nil {
+	if err := DoOauthSignup(c, primaryEmail, user.ProviderGITHUB); err != nil {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{})
@@ -176,7 +177,7 @@ func VerifyGoogle(c *gin.Context) {
 		return
 	}
 
-	if err := DoOauthSignup(c, primaryEmail); err != nil {
+	if err := DoOauthSignup(c, primaryEmail, user.ProviderGOOGLE); err != nil {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{})

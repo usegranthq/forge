@@ -2871,6 +2871,7 @@ type UserMutation struct {
 	email                     *string
 	last_login                *time.Time
 	verified_at               *time.Time
+	provider                  *user.Provider
 	created_at                *time.Time
 	updated_at                *time.Time
 	clearedFields             map[string]struct{}
@@ -3163,6 +3164,42 @@ func (m *UserMutation) VerifiedAtCleared() bool {
 func (m *UserMutation) ResetVerifiedAt() {
 	m.verified_at = nil
 	delete(m.clearedFields, user.FieldVerifiedAt)
+}
+
+// SetProvider sets the "provider" field.
+func (m *UserMutation) SetProvider(u user.Provider) {
+	m.provider = &u
+}
+
+// Provider returns the value of the "provider" field in the mutation.
+func (m *UserMutation) Provider() (r user.Provider, exists bool) {
+	v := m.provider
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProvider returns the old "provider" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldProvider(ctx context.Context) (v user.Provider, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProvider is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProvider requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProvider: %w", err)
+	}
+	return oldValue.Provider, nil
+}
+
+// ResetProvider resets all changes to the "provider" field.
+func (m *UserMutation) ResetProvider() {
+	m.provider = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -3487,7 +3524,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.uid != nil {
 		fields = append(fields, user.FieldUID)
 	}
@@ -3499,6 +3536,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.verified_at != nil {
 		fields = append(fields, user.FieldVerifiedAt)
+	}
+	if m.provider != nil {
+		fields = append(fields, user.FieldProvider)
 	}
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
@@ -3522,6 +3562,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.LastLogin()
 	case user.FieldVerifiedAt:
 		return m.VerifiedAt()
+	case user.FieldProvider:
+		return m.Provider()
 	case user.FieldCreatedAt:
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
@@ -3543,6 +3585,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldLastLogin(ctx)
 	case user.FieldVerifiedAt:
 		return m.OldVerifiedAt(ctx)
+	case user.FieldProvider:
+		return m.OldProvider(ctx)
 	case user.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
@@ -3583,6 +3627,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetVerifiedAt(v)
+		return nil
+	case user.FieldProvider:
+		v, ok := value.(user.Provider)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProvider(v)
 		return nil
 	case user.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -3673,6 +3724,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldVerifiedAt:
 		m.ResetVerifiedAt()
+		return nil
+	case user.FieldProvider:
+		m.ResetProvider()
 		return nil
 	case user.FieldCreatedAt:
 		m.ResetCreatedAt()

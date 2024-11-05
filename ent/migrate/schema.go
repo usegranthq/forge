@@ -113,6 +113,7 @@ var (
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "last_login", Type: field.TypeTime, Nullable: true},
 		{Name: "verified_at", Type: field.TypeTime, Nullable: true},
+		{Name: "provider", Type: field.TypeEnum, Enums: []string{"GOOGLE", "GITHUB", "EMAIL"}},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
