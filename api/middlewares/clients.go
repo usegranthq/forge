@@ -34,7 +34,7 @@ func ValidateClient() gin.HandlerFunc {
 			return
 		}
 
-		cl := l.With(
+		cl := l.WithLazy(
 			"client_id", client.ID,
 		)
 

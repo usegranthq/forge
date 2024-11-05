@@ -33,7 +33,7 @@ func ValidateProject() gin.HandlerFunc {
 			return
 		}
 
-		pl := l.With(
+		pl := l.WithLazy(
 			"project_id", proj.ID,
 		)
 

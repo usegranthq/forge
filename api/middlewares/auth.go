@@ -79,7 +79,7 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 
-		l := utils.Log.With(
+		l := utils.Log.WithLazy(
 			"user_id", user.ID,
 			"user_email", user.Email,
 		)
