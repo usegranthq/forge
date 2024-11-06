@@ -1,6 +1,10 @@
 package main
 
 import (
+	"slices"
+	"time"
+
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/usegranthq/forge/api"
 	"github.com/usegranthq/forge/config"
@@ -30,6 +34,23 @@ func main() {
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 	router.Use(gin.Recovery())
+
+	allowedOrigins := []string{"https://usegrant.dev"}
+	if config.Get("NODE_ENV") == "development" {
+		allowedOrigins = append(allowedOrigins, "http://localhost:3000")
+	}
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     allowedOrigins,
+		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "DELETE"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return slices.Contains(allowedOrigins, origin)
+		},
+		MaxAge: 12 * time.Hour,
+	}))
 
 	api.SetupRoutes(router)
 
