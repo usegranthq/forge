@@ -65,3 +65,13 @@ make migrate name=<migration_name>
 Replace `<migration_name>` with the name of your migration. This command will apply the migration to the database.
 
 Happy hacking!
+
+### Deploying
+
+The deployment process is automated via GitHub Actions on every push to the default branch. Checkout [deploy.yml](.github/workflows/deploy.yml) for more details.
+
+```sh
+make deploy
+```
+
+Deployment happens via SSH. Checkout the [Makefile](./Makefile) for more details.
