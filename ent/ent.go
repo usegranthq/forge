@@ -12,13 +12,13 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/usegranthq/backend/ent/oidcclient"
-	"github.com/usegranthq/backend/ent/project"
-	"github.com/usegranthq/backend/ent/projectdomain"
-	"github.com/usegranthq/backend/ent/token"
-	"github.com/usegranthq/backend/ent/user"
-	"github.com/usegranthq/backend/ent/usersession"
-	"github.com/usegranthq/backend/ent/verification"
+	"github.com/usegranthq/forge/ent/oidcclient"
+	"github.com/usegranthq/forge/ent/project"
+	"github.com/usegranthq/forge/ent/projectdomain"
+	"github.com/usegranthq/forge/ent/token"
+	"github.com/usegranthq/forge/ent/user"
+	"github.com/usegranthq/forge/ent/usersession"
+	"github.com/usegranthq/forge/ent/verification"
 )
 
 // ent aliases to avoid import conflicts in user's code.

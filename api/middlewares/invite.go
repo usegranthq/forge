@@ -2,9 +2,9 @@ package middlewares
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/usegranthq/backend/config"
-	"github.com/usegranthq/backend/constants"
-	"github.com/usegranthq/backend/utils"
+	"github.com/usegranthq/forge/config"
+	"github.com/usegranthq/forge/constants"
+	"github.com/usegranthq/forge/utils"
 )
 
 func ValidateInvite() gin.HandlerFunc {

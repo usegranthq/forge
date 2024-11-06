@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/usegranthq/backend/utils"
+	"github.com/usegranthq/forge/utils"
 )
 
 func main() {

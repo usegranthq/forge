@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/usegranthq/backend/ent/token"
-	"github.com/usegranthq/backend/ent/user"
+	"github.com/usegranthq/forge/ent/token"
+	"github.com/usegranthq/forge/ent/user"
 )
 
 // TokenCreate is the builder for creating a Token entity.

@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v66/github"
-	"github.com/usegranthq/backend/config"
-	"github.com/usegranthq/backend/utils"
+	"github.com/usegranthq/forge/config"
+	"github.com/usegranthq/forge/utils"
 	"golang.org/x/oauth2"
 	ghOauth2 "golang.org/x/oauth2/github"
 )

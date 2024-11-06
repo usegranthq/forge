@@ -12,12 +12,12 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/usegranthq/backend/ent/predicate"
-	"github.com/usegranthq/backend/ent/project"
-	"github.com/usegranthq/backend/ent/token"
-	"github.com/usegranthq/backend/ent/user"
-	"github.com/usegranthq/backend/ent/usersession"
-	"github.com/usegranthq/backend/ent/verification"
+	"github.com/usegranthq/forge/ent/predicate"
+	"github.com/usegranthq/forge/ent/project"
+	"github.com/usegranthq/forge/ent/token"
+	"github.com/usegranthq/forge/ent/user"
+	"github.com/usegranthq/forge/ent/usersession"
+	"github.com/usegranthq/forge/ent/verification"
 )
 
 // UserUpdate is the builder for updating User entities.

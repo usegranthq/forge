@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/usegranthq/backend/external"
-	"github.com/usegranthq/backend/utils"
+	"github.com/usegranthq/forge/external"
+	"github.com/usegranthq/forge/utils"
 )
 
 func GithubLogin(c *gin.Context) {

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/usegranthq/backend/utils"
+	"github.com/usegranthq/forge/utils"
 )
 
 type signupRequest struct {

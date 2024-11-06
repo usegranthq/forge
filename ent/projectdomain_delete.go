@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/usegranthq/backend/ent/predicate"
-	"github.com/usegranthq/backend/ent/projectdomain"
+	"github.com/usegranthq/forge/ent/predicate"
+	"github.com/usegranthq/forge/ent/projectdomain"
 )
 
 // ProjectDomainDelete is the builder for deleting a ProjectDomain entity.

@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/usegranthq/backend/ent"
+	"github.com/usegranthq/forge/ent"
 )
 
 // The OidcClientFunc type is an adapter to allow the use of ordinary

@@ -2,7 +2,7 @@ package utils
 
 import (
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/usegranthq/backend/config"
+	"github.com/usegranthq/forge/config"
 )
 
 type JwtUtils struct{}

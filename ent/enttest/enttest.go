@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/usegranthq/backend/ent"
+	"github.com/usegranthq/forge/ent"
 	// required by schema hooks.
-	_ "github.com/usegranthq/backend/ent/runtime"
+	_ "github.com/usegranthq/forge/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/usegranthq/backend/ent/migrate"
+	"github.com/usegranthq/forge/ent/migrate"
 )
 
 type (

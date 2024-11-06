@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/usegranthq/backend/config"
-	"github.com/usegranthq/backend/db"
-	"github.com/usegranthq/backend/ent/project"
-	"github.com/usegranthq/backend/external"
-	"github.com/usegranthq/backend/utils"
+	"github.com/usegranthq/forge/config"
+	"github.com/usegranthq/forge/db"
+	"github.com/usegranthq/forge/ent/project"
+	"github.com/usegranthq/forge/external"
+	"github.com/usegranthq/forge/utils"
 )
 
 type wellKnownResponse struct {

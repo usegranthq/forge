@@ -2,7 +2,7 @@ package utils
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/usegranthq/backend/config"
+	"github.com/usegranthq/forge/config"
 )
 
 type HttpUtil struct{}

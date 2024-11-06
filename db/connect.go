@@ -8,9 +8,9 @@ import (
 	"entgo.io/ent/dialect"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	"github.com/usegranthq/backend/config"
-	"github.com/usegranthq/backend/ent"
-	"github.com/usegranthq/backend/ent/migrate"
+	"github.com/usegranthq/forge/config"
+	"github.com/usegranthq/forge/ent"
+	"github.com/usegranthq/forge/ent/migrate"
 )
 
 var Client *ent.Client

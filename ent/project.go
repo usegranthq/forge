@@ -10,8 +10,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/usegranthq/backend/ent/project"
-	"github.com/usegranthq/backend/ent/user"
+	"github.com/usegranthq/forge/ent/project"
+	"github.com/usegranthq/forge/ent/user"
 )
 
 // Project is the model entity for the Project schema.

@@ -10,8 +10,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/usegranthq/backend/ent/user"
-	"github.com/usegranthq/backend/ent/usersession"
+	"github.com/usegranthq/forge/ent/user"
+	"github.com/usegranthq/forge/ent/usersession"
 )
 
 // UserSession is the model entity for the UserSession schema.

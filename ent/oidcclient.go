@@ -10,8 +10,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/usegranthq/backend/ent/oidcclient"
-	"github.com/usegranthq/backend/ent/project"
+	"github.com/usegranthq/forge/ent/oidcclient"
+	"github.com/usegranthq/forge/ent/project"
 )
 
 // OidcClient is the model entity for the OidcClient schema.

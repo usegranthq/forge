@@ -2,12 +2,12 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/usegranthq/backend/api/middlewares"
-	"github.com/usegranthq/backend/api/services/auth"
-	"github.com/usegranthq/backend/api/services/projects"
-	"github.com/usegranthq/backend/api/services/public"
-	"github.com/usegranthq/backend/api/services/settings"
-	"github.com/usegranthq/backend/api/services/users"
+	"github.com/usegranthq/forge/api/middlewares"
+	"github.com/usegranthq/forge/api/services/auth"
+	"github.com/usegranthq/forge/api/services/projects"
+	"github.com/usegranthq/forge/api/services/public"
+	"github.com/usegranthq/forge/api/services/settings"
+	"github.com/usegranthq/forge/api/services/users"
 )
 
 func defineProjectRoutes(routerGroup *gin.RouterGroup) {

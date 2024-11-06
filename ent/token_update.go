@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/usegranthq/backend/ent/predicate"
-	"github.com/usegranthq/backend/ent/token"
-	"github.com/usegranthq/backend/ent/user"
+	"github.com/usegranthq/forge/ent/predicate"
+	"github.com/usegranthq/forge/ent/token"
+	"github.com/usegranthq/forge/ent/user"
 )
 
 // TokenUpdate is the builder for updating Token entities.

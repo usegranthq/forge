@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/usegranthq/backend/ent/oidcclient"
-	"github.com/usegranthq/backend/ent/predicate"
+	"github.com/usegranthq/forge/ent/oidcclient"
+	"github.com/usegranthq/forge/ent/predicate"
 )
 
 // OidcClientDelete is the builder for deleting a OidcClient entity.

@@ -5,11 +5,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/usegranthq/backend/config"
-	"github.com/usegranthq/backend/constants"
-	"github.com/usegranthq/backend/db"
-	"github.com/usegranthq/backend/ent/usersession"
-	"github.com/usegranthq/backend/utils"
+	"github.com/usegranthq/forge/config"
+	"github.com/usegranthq/forge/constants"
+	"github.com/usegranthq/forge/db"
+	"github.com/usegranthq/forge/ent/usersession"
+	"github.com/usegranthq/forge/utils"
 )
 
 func unauthorized(c *gin.Context) {

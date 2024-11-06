@@ -13,10 +13,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/usegranthq/backend/ent/oidcclient"
-	"github.com/usegranthq/backend/ent/project"
-	"github.com/usegranthq/backend/ent/projectdomain"
-	"github.com/usegranthq/backend/ent/user"
+	"github.com/usegranthq/forge/ent/oidcclient"
+	"github.com/usegranthq/forge/ent/project"
+	"github.com/usegranthq/forge/ent/projectdomain"
+	"github.com/usegranthq/forge/ent/user"
 )
 
 // ProjectCreate is the builder for creating a Project entity.

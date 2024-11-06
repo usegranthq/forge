@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/usegranthq/backend/db"
-	"github.com/usegranthq/backend/ent"
-	"github.com/usegranthq/backend/ent/user"
-	"github.com/usegranthq/backend/utils"
+	"github.com/usegranthq/forge/db"
+	"github.com/usegranthq/forge/ent"
+	"github.com/usegranthq/forge/ent/user"
+	"github.com/usegranthq/forge/utils"
 )
 
 type loginRequest struct {

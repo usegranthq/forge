@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/usegranthq/backend/ent/oidcclient"
-	"github.com/usegranthq/backend/ent/project"
+	"github.com/usegranthq/forge/ent/oidcclient"
+	"github.com/usegranthq/forge/ent/project"
 )
 
 // OidcClientCreate is the builder for creating a OidcClient entity.

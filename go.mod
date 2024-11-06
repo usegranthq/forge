@@ -1,4 +1,4 @@
-module github.com/usegranthq/backend
+module github.com/usegranthq/forge
 
 go 1.23.2
 

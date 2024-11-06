@@ -3,8 +3,8 @@ package external
 import (
 	"context"
 
-	"github.com/usegranthq/backend/config"
-	"github.com/usegranthq/backend/utils"
+	"github.com/usegranthq/forge/config"
+	"github.com/usegranthq/forge/utils"
 	"golang.org/x/oauth2"
 	gOauth2 "golang.org/x/oauth2/google"
 	gApi "google.golang.org/api/oauth2/v2"

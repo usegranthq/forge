@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/usegranthq/backend/ent/user"
-	"github.com/usegranthq/backend/ent/usersession"
+	"github.com/usegranthq/forge/ent/user"
+	"github.com/usegranthq/forge/ent/usersession"
 )
 
 // UserSessionCreate is the builder for creating a UserSession entity.

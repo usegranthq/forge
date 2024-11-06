@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/usegranthq/backend/config"
+	"github.com/usegranthq/forge/config"
 )
 
 type externalTurnstile struct{}

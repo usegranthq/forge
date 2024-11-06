@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/usegranthq/backend/ent/predicate"
-	"github.com/usegranthq/backend/ent/project"
-	"github.com/usegranthq/backend/ent/projectdomain"
+	"github.com/usegranthq/forge/ent/predicate"
+	"github.com/usegranthq/forge/ent/project"
+	"github.com/usegranthq/forge/ent/projectdomain"
 )
 
 // ProjectDomainQuery is the builder for querying ProjectDomain entities.

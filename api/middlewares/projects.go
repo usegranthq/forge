@@ -3,11 +3,11 @@ package middlewares
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/usegranthq/backend/db"
-	"github.com/usegranthq/backend/ent"
-	"github.com/usegranthq/backend/ent/project"
-	"github.com/usegranthq/backend/ent/user"
-	"github.com/usegranthq/backend/utils"
+	"github.com/usegranthq/forge/db"
+	"github.com/usegranthq/forge/ent"
+	"github.com/usegranthq/forge/ent/project"
+	"github.com/usegranthq/forge/ent/user"
+	"github.com/usegranthq/forge/utils"
 	"go.uber.org/zap"
 )
 

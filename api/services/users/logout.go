@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/usegranthq/backend/constants"
-	"github.com/usegranthq/backend/db"
-	"github.com/usegranthq/backend/ent"
-	"github.com/usegranthq/backend/utils"
+	"github.com/usegranthq/forge/constants"
+	"github.com/usegranthq/forge/db"
+	"github.com/usegranthq/forge/ent"
+	"github.com/usegranthq/forge/utils"
 	"go.uber.org/zap"
 )
 
